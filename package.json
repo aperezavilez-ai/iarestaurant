@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "supabase:admin": "node scripts/supabase-admin.mjs",
+    "supabase:sql": "node scripts/run-sql.mjs",
+    "supabase:link": "npx supabase link --project-ref pssycnwgolxiwoyzdsdg"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

@@ -7,3 +7,5 @@ dist
 *.log
 .vercel
 *.zip
+supabase/.temp
+supabase/.branches

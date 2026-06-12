@@ -1,0 +1,23 @@
+{
+  "name": "IA·RESTAURANT",
+  "short_name": "IA·RESTAURANT",
+  "description": "Operating System for Restaurants — SaaS POS multi-tenant",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF8F0",
+  "theme_color": "#F59E0B",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "POS", "url": "/app/pos" },
+    { "name": "Comensal", "url": "/comensal" },
+    { "name": "Mesero", "url": "/mesero" }
+  ]
+}

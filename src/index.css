@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --warm-bg: #FFF8F0;
+    --warm-surface: #FFFFFF;
+    --brand-gold: #F59E0B;
+    --brand-orange: #F97316;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Outfit', system-ui, sans-serif;
+    background-color: var(--warm-bg);
+    color: #1F2937;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #FEF3C7; }
+  ::-webkit-scrollbar-thumb { background: #FCD34D; border-radius: 3px; }
+}
+
+@layer utilities {
+  .gradient-warm-header {
+    background: linear-gradient(135deg, #FFF8F0 0%, #FFFBEB 40%, #FFEDD5 100%);
+  }
+  .gradient-amber {
+    background: linear-gradient(135deg, #FBBF24 0%, #F97316 100%);
+  }
+  .gradient-orange-gold {
+    background: linear-gradient(135deg, #FDE68A 0%, #FBBF24 50%, #F97316 100%);
+  }
+  .gradient-ai {
+    background: linear-gradient(135deg, #38BDF8 0%, #0284C7 100%);
+  }
+  .glass-warm {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #FDE68A;
+    box-shadow: 0 2px 12px rgba(245, 158, 11, 0.08);
+  }
+  .glass-panel {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  }
+  .product-tile {
+    background: #F0F1F3;
+    border: 1px solid #D1D5DB;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  .product-tile:hover {
+    background: #E8EAED;
+    border-color: #FBBF24;
+  }
+  .product-tile-active {
+    background: #FFFBEB;
+    border-color: #F59E0B;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+  }
+  .text-gradient-warm {
+    background-image: linear-gradient(135deg, #F97316, #F59E0B);
+    color: transparent;
+    background-clip: text;
+  }
+  .ops-grid-bg {
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(251, 191, 36, 0.12) 0%, transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(249, 115, 22, 0.08) 0%, transparent 40%);
+  }
+  .ticket-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}

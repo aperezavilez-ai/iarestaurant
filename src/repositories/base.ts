@@ -1,0 +1,41 @@
+import { isSupabaseConfigured } from '@/lib/config'
+import { localDb } from '@/lib/localDb'
+
+export function isOnline(): boolean {
+  return typeof navigator !== 'undefined' ? navigator.onLine : true
+}
+
+export async function withLocalFirst<T>(
+  localFn: () => Promise<T>,
+  remoteFn?: () => Promise<T>
+): Promise<T> {
+  if (isSupabaseConfigured() && isOnline() && remoteFn) {
+    try {
+      const remote = await remoteFn()
+      return remote
+    } catch {
+      return localFn()
+    }
+  }
+  return localFn()
+}
+
+export async function writeLocalFirst<T extends { id: string }>(
+  entity: T,
+  store: 'products' | 'tables' | 'orders' | 'cash_registers',
+  saveFn: (e: T) => Promise<void>,
+  syncTable: string,
+  operation: 'insert' | 'update' = 'insert'
+): Promise<T> {
+  await saveFn(entity)
+  if (isSupabaseConfigured()) {
+    await localDb.enqueueSync({
+      table: syncTable,
+      operation,
+      payload: entity as unknown as Record<string, unknown>,
+    })
+  }
+  return entity
+}
+
+export { localDb }

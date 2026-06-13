@@ -115,8 +115,11 @@ export function CommandShell() {
         )}
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
-        <main className={cn('flex-1 overflow-y-auto', isPOS ? 'p-0' : 'p-6')}>
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        <main className={cn(
+          'flex-1 min-h-0',
+          isPOS ? 'p-0 overflow-hidden' : 'p-6 overflow-y-auto'
+        )}>
           <Outlet />
         </main>
         {showCopilot && (

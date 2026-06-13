@@ -213,8 +213,8 @@ export default function POSPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-10rem)] bg-command-bg">
-      <div className="flex-1 flex flex-col p-4 gap-3 overflow-hidden border-r border-command-border">
+    <div className="flex h-full min-h-0 bg-command-bg">
+      <div className="flex-1 flex flex-col p-4 gap-3 overflow-hidden min-h-0 border-r border-command-border">
         <div className="flex gap-2 flex-wrap">
           <Input placeholder="Buscar producto..." value={search} onChange={e => setSearch(e.target.value)} icon={<Search size={15} />} className="flex-1 min-w-[200px]" />
           <button onClick={() => setTableModal(true)}
@@ -244,7 +244,7 @@ export default function POSPage() {
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
             {filtered.map(p => {
               const inCart = cart.filter(i => i.product_id === p.id)
@@ -269,8 +269,8 @@ export default function POSPage() {
         </div>
       </div>
 
-      <div className="w-[360px] flex flex-col bg-white border-l border-command-border shrink-0 shadow-panel">
-        <div className="p-4 border-b border-command-border bg-gradient-to-r from-brand-50 to-orange-50">
+      <div className="w-[320px] xl:w-[360px] flex flex-col bg-white border-l border-command-border shrink-0 min-h-0 h-full shadow-panel">
+        <div className="p-4 border-b border-command-border bg-gradient-to-r from-brand-50 to-orange-50 shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ShoppingCart size={16} className="text-orange-600" />
@@ -287,7 +287,7 @@ export default function POSPage() {
           </div>
         </div>
 
-        <div className="px-3 py-2 border-b border-command-border bg-command-elevated/50 space-y-2">
+        <div className="px-3 py-2 border-b border-command-border bg-command-elevated/50 space-y-2 shrink-0">
           <div className="flex gap-2">
             <Input placeholder="Código promo" value={promoInput} onChange={e => setPromoInput(e.target.value)} className="text-xs h-8" />
             <Button size="sm" variant="outline" onClick={applyPromo} className="shrink-0 h-8 px-2">
@@ -303,7 +303,7 @@ export default function POSPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-3 space-y-1">
+        <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-1">
           {cart.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-slate-600">
               <ShoppingCart size={32} className="mb-2 opacity-30" />
@@ -333,20 +333,20 @@ export default function POSPage() {
           ))}
         </div>
 
-        <div className="border-t border-command-border bg-brand-50/50 p-4 space-y-2">
+        <div className="border-t border-command-border bg-brand-50/50 p-3 space-y-2 shrink-0">
           <div className="flex justify-between text-xs font-mono text-slate-600"><span>SUBTOTAL</span><span>{formatCurrency(subtotal)}</span></div>
           {discount > 0 && (
             <div className="flex justify-between text-xs font-mono text-ops-success"><span>DESCUENTO</span><span>−{formatCurrency(discount)}</span></div>
           )}
           <div className="flex justify-between text-xs font-mono text-slate-600"><span>IVA {(taxRate * 100).toFixed(0)}%</span><span>{formatCurrency(tax)}</span></div>
-          <div className="flex justify-between text-2xl font-mono font-black text-slate-800 pt-2 border-t border-command-border">
+          <div className="flex justify-between text-xl font-mono font-black text-slate-800 pt-1 border-t border-command-border">
             <span>TOTAL</span><span className="text-brand-600">{formatCurrency(total)}</span>
           </div>
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            <Button variant="outline" size="lg" disabled={!cart.length || loading} onClick={handleSendKitchen}>
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <Button variant="outline" size="md" className="h-11" disabled={!cart.length || loading} onClick={handleSendKitchen}>
               <ChefHat size={16} /> Cocina
             </Button>
-            <Button size="lg" disabled={!cart.length} onClick={() => setPayModal(true)}>
+            <Button size="md" className="h-11" disabled={!cart.length} onClick={() => setPayModal(true)}>
               <CreditCard size={16} /> Cobrar
             </Button>
           </div>

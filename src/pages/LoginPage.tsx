@@ -47,8 +47,15 @@ export default function LoginPage() {
       setSession(session)
       toast(`Sistema activo — Bienvenido ${session.user.full_name}`, 'success')
       navigate('/app/dashboard')
-    } catch {
-      toast('Acceso denegado — verifica credenciales', 'error')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Credenciales incorrectas'
+      if (msg.toLowerCase().includes('invalid login')) {
+        toast('Correo o contraseña incorrectos', 'error')
+      } else if (msg.includes('Email not confirmed')) {
+        toast('Confirma tu correo en Supabase Auth', 'error')
+      } else {
+        toast(msg.length < 80 ? msg : 'Acceso denegado — verifica credenciales', 'error')
+      }
     } finally {
       setLoading(false)
     }

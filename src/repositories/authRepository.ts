@@ -14,12 +14,13 @@ export interface AuthSession {
 export const authRepository = {
   async signIn(email: string, password: string): Promise<AuthSession> {
     await localDb.ensureLocalSeed()
+    const normalizedEmail = email.trim().toLowerCase()
 
     if (isSupabaseConfigured()) {
       try {
-        const { user: authUser } = await authService.signIn(email, password)
+        const { user: authUser } = await authService.signIn(normalizedEmail, password)
         const profile = await authService.getUserProfile(authUser.id)
-        if (!profile) throw new Error('Perfil no encontrado')
+        if (!profile) throw new Error('Perfil no encontrado en el sistema')
         const tenant = await tenantService.getTenant(profile.tenant_id)
         const sucursal = profile.sucursal_id
           ? await tenantService.getSucursal(profile.sucursal_id)
@@ -31,7 +32,7 @@ export const authRepository = {
       }
     }
 
-    const cred = DEMO_CREDENTIALS.find((c) => c.email === email && c.password === password)
+    const cred = DEMO_CREDENTIALS.find((c) => c.email === normalizedEmail && c.password === password)
     if (!cred) throw new Error('Credenciales incorrectas')
 
     const user = SEED_STAFF[cred.userIndex]

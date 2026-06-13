@@ -20,6 +20,24 @@ export async function withLocalFirst<T>(
   return localFn()
 }
 
+/** Fusiona IndexedDB + Supabase (evita pantallas vacías si remoto aún no tiene datos) */
+export async function withHybridList<T extends { id: string }>(
+  localFn: () => Promise<T[]>,
+  remoteFn?: () => Promise<T[]>
+): Promise<T[]> {
+  const local = await localFn()
+  if (!isSupabaseConfigured() || !isOnline() || !remoteFn) return local
+  try {
+    const remote = await remoteFn()
+    const map = new Map<string, T>()
+    for (const item of local) map.set(item.id, item)
+    for (const item of remote) map.set(item.id, item)
+    return Array.from(map.values())
+  } catch {
+    return local
+  }
+}
+
 export async function writeLocalFirst<T extends { id: string }>(
   entity: T,
   store: 'products' | 'tables' | 'orders' | 'cash_registers',

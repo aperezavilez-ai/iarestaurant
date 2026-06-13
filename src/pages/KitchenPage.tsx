@@ -5,6 +5,8 @@ import { Clock, CheckCircle, Bell, Flame, QrCode, AlertTriangle } from 'lucide-r
 import { toast } from '@/components/ui/Toast'
 import { useTenantContext } from '@/hooks/useTenantContext'
 import { useOpsSync } from '@/hooks/useOpsSync'
+import { realtimeService } from '@/services/realtimeService'
+import { isSupabaseConfigured } from '@/lib/config'
 import { orderRepository } from '@/repositories/orderRepository'
 import { tableRepository } from '@/repositories/tableRepository'
 import { useLiveFlowStore } from '@/store/liveFlowStore'
@@ -29,6 +31,12 @@ export default function KitchenPage() {
   }, [ctx])
 
   useOpsSync(load, 3000)
+
+  useEffect(() => {
+    if (!ctx || !isSupabaseConfigured()) return
+    const unsub = realtimeService.subscribeTenant(ctx.tenantId, 'orders', () => load())
+    return unsub
+  }, [ctx, load])
 
   useEffect(() => {
     load()

@@ -5,7 +5,7 @@ import { localDb } from '@/lib/localDb'
 import { opsBroadcast } from '@/services/opsBroadcast'
 import { inventoryRepository } from '@/repositories/inventoryRepository'
 import { crmRepository } from '@/repositories/crmRepository'
-import { withLocalFirst } from './base'
+import { withLocalFirst, withHybridList } from './base'
 import { isSupabaseConfigured } from '@/lib/config'
 import { generateFolio } from '@/lib/utils'
 import { TAX_RATE } from '@/data/constants'
@@ -54,14 +54,15 @@ export interface CartLine {
 
 export const orderRepository = {
   async getActiveOrders(ctx: TenantContext): Promise<Order[]> {
-    return withLocalFirst(
+    const orders = await withHybridList(
       () => localDb.getActiveOrders(ctx.tenantId, ctx.sucursalId),
       () => orderService.getActiveOrders(ctx.tenantId, ctx.sucursalId)
     )
+    return orders.filter((o) => o.status !== 'cobrada' && o.status !== 'cancelada')
   },
 
   async getAllOrders(ctx: TenantContext): Promise<Order[]> {
-    return withLocalFirst(
+    return withHybridList(
       () => localDb.getOrders(ctx.tenantId, ctx.sucursalId),
       () => orderService.getOrderHistory(ctx.tenantId, ctx.sucursalId, 200)
     )

@@ -1,11 +1,15 @@
 import { localDb } from '@/lib/localDb'
+import { orderRepository } from '@/repositories/orderRepository'
+import { tableRepository } from '@/repositories/tableRepository'
 import type { DashboardStats } from '@/types'
 import type { TenantContext } from '@/types/context'
 
 export const dashboardRepository = {
   async getStats(ctx: TenantContext): Promise<DashboardStats> {
-    const orders = await localDb.getOrders(ctx.tenantId, ctx.sucursalId)
-    const tables = await localDb.getTables(ctx.tenantId, ctx.sucursalId)
+    const [orders, tables] = await Promise.all([
+      orderRepository.getAllOrders(ctx),
+      tableRepository.getTables(ctx),
+    ])
     const today = new Date().toISOString().slice(0, 10)
 
     const todayOrders = orders.filter(
@@ -54,8 +58,8 @@ export const dashboardRepository = {
   },
 
   async getActiveOrdersForTable(ctx: TenantContext) {
-    const orders = await localDb.getActiveOrders(ctx.tenantId, ctx.sucursalId)
-    const tables = await localDb.getTables(ctx.tenantId, ctx.sucursalId)
+    const orders = await orderRepository.getActiveOrders(ctx)
+    const tables = await tableRepository.getTables(ctx)
     return orders.map((o) => {
       const table = tables.find((t) => t.id === o.table_id)
       const mins = Math.floor((Date.now() - new Date(o.created_at).getTime()) / 60000)

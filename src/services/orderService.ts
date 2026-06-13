@@ -2,6 +2,12 @@ import { supabase } from '@/lib/supabase'
 import type { Order, OrderItem } from '@/types'
 import { generateFolio } from '@/lib/utils'
 
+function normalizeOrder(row: Record<string, unknown>): Order {
+  const rawItems = (row.items as OrderItem[] | undefined) ?? (row.order_items as OrderItem[] | undefined) ?? []
+  const { order_items: _oi, items: _i, ...rest } = row
+  return { ...rest, items: rawItems } as Order
+}
+
 export const orderService = {
   async createOrder(data: Partial<Order>, items: Partial<OrderItem>[]): Promise<Order> {
     const row = {
@@ -21,12 +27,13 @@ export const orderService = {
     return order
   },
   async getActiveOrders(tenantId: string, sucursalId: string): Promise<Order[]> {
-    const { data } = await supabase
-      .from('orders').select('*, items:order_items(*)')
+    const { data, error } = await supabase
+      .from('orders').select('*, order_items(*)')
       .eq('tenant_id', tenantId).eq('sucursal_id', sucursalId)
       .in('status', ['abierta', 'en_preparacion', 'lista'])
       .order('created_at', { ascending: false })
-    return data || []
+    if (error) throw error
+    return (data || []).map((row) => normalizeOrder(row as Record<string, unknown>))
   },
   async updateOrderStatus(orderId: string, status: Order['status']): Promise<void> {
     await supabase.from('orders').update({ status, updated_at: new Date().toISOString() }).eq('id', orderId)
@@ -35,10 +42,11 @@ export const orderService = {
     await supabase.from('order_items').update({ status }).eq('id', itemId)
   },
   async getOrderHistory(tenantId: string, sucursalId: string, limit = 50): Promise<Order[]> {
-    const { data } = await supabase
-      .from('orders').select('*')
+    const { data, error } = await supabase
+      .from('orders').select('*, order_items(*)')
       .eq('tenant_id', tenantId).eq('sucursal_id', sucursalId)
       .order('created_at', { ascending: false }).limit(limit)
-    return data || []
+    if (error) throw error
+    return (data || []).map((row) => normalizeOrder(row as Record<string, unknown>))
   },
 }

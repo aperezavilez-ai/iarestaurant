@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/utils'
+import { PageBack } from '@/components/layout/PageBack'
 import type { ReactNode } from 'react'
 
 interface ModuleLayoutProps {
@@ -9,11 +10,14 @@ interface ModuleLayoutProps {
   children: ReactNode
   actions?: ReactNode
   stats?: { label: string; value: string; color?: string }[]
+  backTo?: string
+  backLabel?: string
 }
 
-export function ModuleLayout({ phase, title, description, children, actions, stats }: ModuleLayoutProps) {
+export function ModuleLayout({ phase, title, description, children, actions, stats, backTo = '/app/modules', backLabel = 'Todos los módulos' }: ModuleLayoutProps) {
   return (
     <div className="space-y-6 animate-fadeUp">
+      <PageBack to={backTo} label={backLabel} className="mb-2" />
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <div className="flex items-center gap-2 mb-1">

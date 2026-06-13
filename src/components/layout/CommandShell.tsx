@@ -10,6 +10,7 @@ import { useLiveOps } from '@/hooks/useLiveOps'
 import { formatCurrency } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { ConnectionStatus } from '@/components/system/ConnectionStatus'
+import { PageBack, getPageBackTarget } from './PageBack'
 
 const PAGE_META: Record<string, { title: string; zone: string }> = {
   '/app/dashboard': { title: 'Centro de mando', zone: 'COMANDO' },
@@ -22,6 +23,14 @@ const PAGE_META: Record<string, { title: string; zone: string }> = {
   '/app/users': { title: 'Equipo', zone: 'PERSONAL' },
   '/app/branches': { title: 'Locales', zone: 'RED' },
   '/app/settings': { title: 'Sistema', zone: 'CONFIG' },
+  '/app/modules': { title: 'Todos los módulos', zone: 'HUB' },
+  '/app/reservations': { title: 'Reservaciones', zone: 'OPERACIÓN' },
+  '/app/inventory': { title: 'Inventario', zone: 'STOCK' },
+  '/app/purchases': { title: 'Compras', zone: 'STOCK' },
+  '/app/customers': { title: 'Clientes', zone: 'CRM' },
+  '/app/delivery': { title: 'Delivery', zone: 'OPERACIÓN' },
+  '/app/invoicing': { title: 'Facturación', zone: 'FINANZAS' },
+  '/app/finance': { title: 'Finanzas', zone: 'FINANZAS' },
 }
 
 export function CommandShell() {
@@ -34,20 +43,22 @@ export function CommandShell() {
   const isPOS = location.pathname === '/app/pos'
   const meta = PAGE_META[location.pathname] || { title: 'IA·RESTAURANT', zone: 'OPS' }
   const showCopilot = !isKitchen
+  const backTarget = getPageBackTarget(location.pathname)
 
   if (isKitchen) {
     return (
       <div className="h-screen bg-orange-50 overflow-hidden flex flex-col">
-        <header className="h-12 px-4 flex items-center justify-between border-b border-orange-200 bg-gradient-to-r from-orange-500 to-brand-500 shrink-0">
-          <div className="flex items-center gap-4">
-            <Logo size="sm" light />
-            <span className="text-xs font-mono text-white/90 uppercase tracking-widest flex items-center gap-2">
+        <header className="h-12 px-3 sm:px-4 flex items-center justify-between gap-2 border-b border-orange-200 bg-gradient-to-r from-orange-500 to-brand-500 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            {backTarget && <PageBack to={backTarget.to} label={backTarget.label} light />}
+            <Logo size="sm" light className="hidden sm:flex" />
+            <span className="text-[10px] sm:text-xs font-mono text-white/90 uppercase tracking-widest flex items-center gap-2 shrink-0">
               <span className="w-2 h-2 rounded-full bg-white animate-pulse-live" />
-              KDS — Producción
+              KDS
             </span>
           </div>
           <CommandNav compact light />
-          <span className="text-xs font-mono text-white/80">{tenant?.name}</span>
+          <span className="text-[10px] sm:text-xs font-mono text-white/80 truncate max-w-[80px] sm:max-w-none">{tenant?.name}</span>
         </header>
         <main className="flex-1 overflow-hidden p-4 bg-orange-50">
           <Outlet />
@@ -101,12 +112,15 @@ export function CommandShell() {
       </header>
 
       <div className={cn(
-        'shrink-0 px-6 py-3 border-b border-command-border flex items-center justify-between',
+        'shrink-0 px-4 sm:px-6 py-3 border-b border-command-border flex items-center justify-between gap-3',
         isPOS ? 'bg-white' : 'bg-command-bg/80'
       )}>
-        <div>
-          <p className="text-[10px] font-mono text-orange-600 uppercase tracking-[0.2em]">{meta.zone}</p>
-          <h1 className="text-xl font-black text-slate-800">{meta.title}</h1>
+        <div className="flex items-center gap-3 min-w-0">
+          {backTarget && <PageBack to={backTarget.to} label={backTarget.label} />}
+          <div className="min-w-0">
+            <p className="text-[10px] font-mono text-orange-600 uppercase tracking-[0.2em]">{meta.zone}</p>
+            <h1 className="text-lg sm:text-xl font-black text-slate-800 truncate">{meta.title}</h1>
+          </div>
         </div>
         {isPOS && stats && (
           <p className="text-xs font-mono text-slate-500">

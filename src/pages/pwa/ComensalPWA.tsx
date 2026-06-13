@@ -8,6 +8,7 @@ import { SEED_PRODUCTS } from '@/data/seed'
 import { getTableByNumber } from '@/lib/tableLookup'
 import { useLiveFlowStore } from '@/store/liveFlowStore'
 import { useLiveFlowSync } from '@/hooks/useLiveFlowSync'
+import { PwaBackLink } from '@/components/layout/PageBack'
 import { toast } from '@/components/ui/Toast'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -102,6 +103,7 @@ export default function ComensalPWA() {
   return (
     <div className="min-h-screen bg-command-bg max-w-md mx-auto pb-44">
       <header className="gradient-amber text-white p-4 sticky top-0 z-10 shadow-glow">
+        <PwaBackLink light className="mb-2" />
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] opacity-80 uppercase tracking-widest">PWA Comensal · QR</p>

@@ -1,4 +1,5 @@
 import { useLiveFlowSync } from '@/hooks/useLiveFlowSync'
+import { PwaBackLink } from '@/components/layout/PageBack'
 import { useLiveFlowStore } from '@/store/liveFlowStore'
 import { Bell, CheckCircle, Clock, Users, QrCode, Volume2 } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
@@ -31,6 +32,7 @@ export default function MeseroPWA() {
   return (
     <div className="min-h-screen bg-command-bg max-w-md mx-auto">
       <header className="bg-white border-b border-command-border p-4 sticky top-0 z-10">
+        <PwaBackLink className="mb-2" />
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] font-mono text-orange-600 uppercase">PWA Mesero</p>

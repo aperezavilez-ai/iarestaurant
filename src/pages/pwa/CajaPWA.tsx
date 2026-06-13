@@ -2,6 +2,7 @@ import { useLiveFlowSync } from '@/hooks/useLiveFlowSync'
 import { useLiveFlowStore } from '@/store/liveFlowStore'
 import { QRValidationPanel } from '@/components/qr/QRValidationPanel'
 import { Badge } from '@/components/ui/Badge'
+import { PwaBackLink } from '@/components/layout/PageBack'
 import { Vault, Settings } from 'lucide-react'
 
 export default function CajaPWA() {
@@ -11,6 +12,7 @@ export default function CajaPWA() {
   return (
     <div className="min-h-screen bg-command-bg max-w-lg mx-auto">
       <header className="bg-white border-b border-command-border p-4 sticky top-0 z-10">
+        <PwaBackLink className="mb-2" />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Vault size={20} className="text-brand-600" />

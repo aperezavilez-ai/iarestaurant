@@ -5,12 +5,15 @@ import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
 import { Layers } from 'lucide-react'
 
+import { PageBack } from '@/components/layout/PageBack'
+
 export default function ModulesHubPage() {
   const { user } = useAuthStore()
   const visible = ALL_MODULES.filter(m => user?.role && m.roles.includes(user.role))
 
   return (
     <div className="space-y-8 animate-fadeUp">
+      <PageBack to="/app/dashboard" label="Centro de mando" />
       <div>
         <div className="flex items-center gap-2 mb-2">
           <Layers size={20} className="text-brand-600" />

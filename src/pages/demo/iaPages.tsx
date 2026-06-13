@@ -105,7 +105,7 @@ export function IAChatPage() {
               </button>
             ))}
           </div>
-          <p className="text-[10px] text-slate-400 mt-4">Demo: respuestas simuladas por rol. Con Supabase + LLM usará datos reales.</p>
+          <p className="text-[10px] text-slate-400 mt-4">Demo: respuestas simuladas por rol. Con IA conectada usará datos reales.</p>
         </Card>
       </div>
     </ModuleLayout>

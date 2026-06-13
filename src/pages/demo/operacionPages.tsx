@@ -11,6 +11,7 @@ import { DEMO_PROMOTIONS, DEMO_RESERVATIONS, DEMO_DELIVERIES, PRODUCTION_CENTERS
 import type { Order, Category } from '@/types'
 import { DEMO_QR_SESSIONS } from '@/data/demoSeed'
 import { Plus, Printer, QrCode, FileText } from 'lucide-react'
+import { MenuSectionNav } from '@/components/menu/MenuSectionNav'
 import { toast } from '@/components/ui/Toast'
 import { invoiceRepository } from '@/repositories/invoiceRepository'
 import { Modal } from '@/components/ui/Modal'
@@ -236,10 +237,12 @@ export function QRMenuPage() {
   const demoMesas = [5, 12, 4, 10]
 
   return (
+    <div className="space-y-5 animate-fadeUp">
+      <MenuSectionNav />
     <ModuleLayout phase={8} title="Menú QR y sesiones" description="Escanea el QR → el comensal arma su pedido → Caja valida → Cocina prepara → Mesero recibe alerta."
       stats={[
         { label: 'Sesiones demo', value: String(demoMesas.length) },
-        { label: 'PWAs', value: '4' },
+        { label: 'Apps QR', value: '4' },
       ]}>
       <Card className="p-5 bg-brand-50/50 border-brand-200 mb-4">
         <p className="font-bold text-slate-800 mb-2">Flujo conectado en demo</p>
@@ -277,9 +280,9 @@ export function QRMenuPage() {
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
         {[
-          { label: 'PWA Comensal', path: '/comensal?mesa=5' },
-          { label: 'PWA Caja', path: '/caja' },
-          { label: 'PWA Mesero', path: '/mesero' },
+          { label: 'Comensal', path: '/comensal?mesa=5' },
+          { label: 'Caja', path: '/caja' },
+          { label: 'Mesero', path: '/mesero' },
           { label: 'Cocina KDS', path: '/app/kitchen' },
         ].map(p => (
           <a key={p.path} href={p.path} target="_blank" rel="noreferrer"
@@ -290,5 +293,6 @@ export function QRMenuPage() {
         ))}
       </div>
     </ModuleLayout>
+    </div>
   )
 }

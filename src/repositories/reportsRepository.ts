@@ -1,6 +1,11 @@
+import { orderRepository } from '@/repositories/orderRepository'
+import { paymentService } from '@/services/paymentService'
 import { localDb } from '@/lib/localDb'
+import { withHybridList } from '@/repositories/base'
 import { getProductCategory } from '@/lib/productionCenters'
+import { isSupabaseConfigured } from '@/lib/config'
 import type { TenantContext } from '@/types/context'
+import type { Payment } from '@/types'
 
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const CATEGORY_COLORS: Record<string, string> = {
@@ -8,14 +13,23 @@ const CATEGORY_COLORS: Record<string, string> = {
   Bebidas: '#22D3EE', Cocteles: '#A78BFA', Postres: '#EC4899',
 }
 
+async function getMergedPayments(ctx: TenantContext): Promise<Payment[]> {
+  return withHybridList(
+    () => localDb.getPayments(ctx.tenantId),
+    isSupabaseConfigured()
+      ? () => paymentService.getPaymentsByTenant(ctx.tenantId)
+      : undefined
+  )
+}
+
 export const reportsRepository = {
   async getSummary(ctx: TenantContext) {
-    const orders = await localDb.getOrders(ctx.tenantId, ctx.sucursalId)
-    const cobradas = orders.filter(o => o.status === 'cobrada')
+    const orders = await orderRepository.getAllOrders(ctx)
+    const cobradas = orders.filter((o) => o.status === 'cobrada')
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
-    const weekOrders = cobradas.filter(o => new Date(o.created_at).getTime() >= weekAgo)
+    const weekOrders = cobradas.filter((o) => new Date(o.created_at).getTime() >= weekAgo)
     const weekSales = weekOrders.reduce((s, o) => s + o.total, 0)
-    const cancelled = orders.filter(o => o.status === 'cancelada').length
+    const cancelled = orders.filter((o) => o.status === 'cancelada').length
 
     return {
       weekSales,
@@ -27,15 +41,15 @@ export const reportsRepository = {
   },
 
   async getWeeklySales(ctx: TenantContext) {
-    const orders = await localDb.getOrders(ctx.tenantId, ctx.sucursalId)
-    const cobradas = orders.filter(o => o.status === 'cobrada')
+    const orders = await orderRepository.getAllOrders(ctx)
+    const cobradas = orders.filter((o) => o.status === 'cobrada')
     const days: { day: string; sales: number; orders: number }[] = []
 
     for (let i = 6; i >= 0; i--) {
       const d = new Date()
       d.setDate(d.getDate() - i)
       const key = d.toISOString().slice(0, 10)
-      const dayOrders = cobradas.filter(o => o.created_at.startsWith(key))
+      const dayOrders = cobradas.filter((o) => o.created_at.startsWith(key))
       days.push({
         day: DAY_LABELS[d.getDay()],
         sales: dayOrders.reduce((s, o) => s + o.total, 0),
@@ -46,8 +60,8 @@ export const reportsRepository = {
   },
 
   async getCategoryBreakdown(ctx: TenantContext) {
-    const orders = await localDb.getOrders(ctx.tenantId, ctx.sucursalId)
-    const cobradas = orders.filter(o => o.status === 'cobrada')
+    const orders = await orderRepository.getAllOrders(ctx)
+    const cobradas = orders.filter((o) => o.status === 'cobrada')
     const map: Record<string, number> = {}
 
     for (const order of cobradas) {
@@ -69,13 +83,22 @@ export const reportsRepository = {
   },
 
   async getPaymentBreakdown(ctx: TenantContext) {
-    const payments = await localDb.getPayments(ctx.tenantId)
+    const payments = await getMergedPayments(ctx)
     const map: Record<string, number> = {}
 
     for (const p of payments) {
-      const key = p.method
-      map[key] = (map[key] || 0) + p.amount
+      map[p.method] = (map[p.method] || 0) + p.amount
     }
     return Object.entries(map).map(([method, amount]) => ({ method, amount }))
+  },
+
+  async getFullReport(ctx: TenantContext) {
+    const [weekly, categories, summary, payments] = await Promise.all([
+      this.getWeeklySales(ctx),
+      this.getCategoryBreakdown(ctx),
+      this.getSummary(ctx),
+      this.getPaymentBreakdown(ctx),
+    ])
+    return { weekly, categories, summary, payments }
   },
 }

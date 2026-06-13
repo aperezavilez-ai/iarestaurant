@@ -12,4 +12,15 @@ export const paymentService = {
     const { data } = await supabase.from('payments').select('*').eq('order_id', orderId)
     return data || []
   },
+
+  async getPaymentsByTenant(tenantId: string, limit = 200): Promise<Payment[]> {
+    const { data, error } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    if (error) throw error
+    return data || []
+  },
 }

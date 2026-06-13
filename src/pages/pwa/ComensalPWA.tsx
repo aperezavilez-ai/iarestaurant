@@ -106,7 +106,7 @@ export default function ComensalPWA() {
         <PwaBackLink light className="mb-2" />
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] opacity-80 uppercase tracking-widest">PWA Comensal · QR</p>
+            <p className="text-[10px] opacity-80 uppercase tracking-widest">Comensal · QR</p>
             <p className="font-black text-lg">Mesa {table.number} · {table.area_name}</p>
           </div>
           <QrCode size={24} />

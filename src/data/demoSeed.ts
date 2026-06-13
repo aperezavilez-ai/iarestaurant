@@ -17,12 +17,14 @@ export const DEMO_VARIANTS: ProductVariant[] = [
 ]
 
 export const DEMO_INGREDIENTS: Ingredient[] = [
-  { id: 'ing1', tenant_id: T, name: 'Tortilla de maíz', unit: 'pza', stock: 450, min_stock: 100, cost: 0.8 },
-  { id: 'ing2', tenant_id: T, name: 'Carne al pastor', unit: 'kg', stock: 12, min_stock: 5, cost: 180 },
-  { id: 'ing3', tenant_id: T, name: 'Aguacate', unit: 'kg', stock: 8, min_stock: 3, cost: 95 },
-  { id: 'ing4', tenant_id: T, name: 'Tequila reposado', unit: 'L', stock: 4, min_stock: 2, cost: 320 },
-  { id: 'ing5', tenant_id: T, name: 'Cerveza corona', unit: 'pza', stock: 48, min_stock: 24, cost: 18 },
-  { id: 'ing6', tenant_id: T, name: 'Limón', unit: 'kg', stock: 2, min_stock: 5, cost: 25 },
+  { id: '00000000-0000-0000-0000-000000000501', tenant_id: T, name: 'Tortilla de maíz', unit: 'pza', stock: 450, min_stock: 100, cost: 0.8 },
+  { id: '00000000-0000-0000-0000-000000000502', tenant_id: T, name: 'Carne al pastor', unit: 'kg', stock: 12, min_stock: 5, cost: 180 },
+  { id: '00000000-0000-0000-0000-000000000503', tenant_id: T, name: 'Aguacate', unit: 'kg', stock: 8, min_stock: 3, cost: 95 },
+  { id: '00000000-0000-0000-0000-000000000504', tenant_id: T, name: 'Tequila reposado', unit: 'L', stock: 4, min_stock: 2, cost: 320 },
+  { id: '00000000-0000-0000-0000-000000000505', tenant_id: T, name: 'Cerveza corona', unit: 'pza', stock: 48, min_stock: 24, cost: 18 },
+  { id: '00000000-0000-0000-0000-000000000506', tenant_id: T, name: 'Limón', unit: 'kg', stock: 2, min_stock: 5, cost: 25 },
+  { id: '00000000-0000-0000-0000-000000000507', tenant_id: T, name: 'Queso Oaxaca', unit: 'kg', stock: 6, min_stock: 2, cost: 140 },
+  { id: '00000000-0000-0000-0000-000000000508', tenant_id: T, name: 'Arroz', unit: 'kg', stock: 15, min_stock: 5, cost: 28 },
 ]
 
 export const DEMO_SUPPLIERS: Supplier[] = [

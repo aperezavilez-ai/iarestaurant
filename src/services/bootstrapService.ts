@@ -1,7 +1,22 @@
 import { isSupabaseConfigured } from '@/lib/config'
 import { localDb } from '@/lib/localDb'
 import { supabase } from '@/lib/supabase'
+import { useOpsDataStore } from '@/store/opsDataStore'
 import type { TenantContext } from '@/types/context'
+import type { Ingredient, StockMovement } from '@/types/demo'
+
+function mapMovement(row: Record<string, unknown>): StockMovement {
+  const ing = row.ingredients as { name?: string } | null
+  return {
+    id: row.id as string,
+    tenant_id: row.tenant_id as string,
+    ingredient_id: row.ingredient_id as string,
+    ingredient_name: ing?.name ?? '',
+    delta: Number(row.delta),
+    reason: (row.reason as string) ?? '',
+    created_at: row.created_at as string,
+  }
+}
 
 /** Sincroniza datos de Supabase → IndexedDB al iniciar sesión remota */
 export const bootstrapService = {
@@ -11,7 +26,7 @@ export const bootstrapService = {
     const synced: string[] = []
 
     try {
-      const [categories, products, areas, tables, orders] = await Promise.all([
+      const [categories, products, areas, tables, orders, payments, ingredients, movements] = await Promise.all([
         supabase.from('categories').select('*').eq('tenant_id', ctx.tenantId),
         supabase.from('products').select('*').eq('tenant_id', ctx.tenantId),
         supabase.from('table_areas').select('*').eq('sucursal_id', ctx.sucursalId),
@@ -20,6 +35,19 @@ export const bootstrapService = {
           .from('orders')
           .select('*, order_items(*)')
           .eq('sucursal_id', ctx.sucursalId)
+          .order('created_at', { ascending: false })
+          .limit(100),
+        supabase
+          .from('payments')
+          .select('*')
+          .eq('tenant_id', ctx.tenantId)
+          .order('created_at', { ascending: false })
+          .limit(200),
+        supabase.from('ingredients').select('*').eq('tenant_id', ctx.tenantId),
+        supabase
+          .from('stock_movements')
+          .select('*, ingredients(name)')
+          .eq('tenant_id', ctx.tenantId)
           .order('created_at', { ascending: false })
           .limit(100),
       ])
@@ -51,6 +79,29 @@ export const bootstrapService = {
           await localDb.saveOrder(order as never, items as never)
         }
         synced.push('orders')
+      }
+
+      if (payments.data?.length) {
+        for (const p of payments.data) await localDb.savePayment(p)
+        synced.push('payments')
+      }
+
+      if (ingredients.data?.length) {
+        const mapped: Ingredient[] = ingredients.data.map((row) => ({
+          id: row.id,
+          tenant_id: row.tenant_id,
+          name: row.name,
+          unit: row.unit,
+          stock: Number(row.stock),
+          min_stock: Number(row.min_stock),
+          cost: Number(row.cost),
+          supplier_id: row.supplier_id,
+        }))
+        const movMapped = (movements.data || []).map((r) =>
+          mapMovement(r as Record<string, unknown>)
+        )
+        useOpsDataStore.getState().hydrateInventory(mapped, movMapped)
+        synced.push('ingredients')
       }
 
       return { ok: true, tables: synced }

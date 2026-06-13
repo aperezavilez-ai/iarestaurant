@@ -4,7 +4,7 @@ import { authRepository } from '@/repositories/authRepository'
 import { localDb } from '@/lib/localDb'
 import { syncService } from '@/services/syncService'
 import { bootstrapService } from '@/services/bootstrapService'
-import { isSupabaseConfigured, getDataMode } from '@/lib/config'
+import { isSupabaseConfigured } from '@/lib/config'
 import { SEED_SUCURSAL } from '@/data/seed'
 import { Logo } from '@/components/brand/Logo'
 import { Loader2 } from 'lucide-react'
@@ -55,7 +55,7 @@ export function AuthInit({ children }: { children: React.ReactNode }) {
           <span className="text-sm font-mono">Inicializando sistema...</span>
         </div>
         <p className="text-[10px] font-mono text-slate-600 uppercase tracking-widest">
-          {getDataMode() === 'local' ? 'Modo local' : 'Supabase conectado'}
+          Conectando servicios…
         </p>
       </div>
     )

@@ -164,7 +164,7 @@ export const orderRepository = {
 
     await localDb.saveOrder({ ...order, items }, items)
     for (const p of payments) await localDb.savePayment(p)
-    inventoryRepository.deductForOrder(lines, folio)
+    await inventoryRepository.deductForOrder(ctx, lines, folio)
     if (options?.customerId) crmRepository.recordSale(options.customerId, total)
     opsBroadcast.notify()
 
@@ -223,7 +223,7 @@ export const orderRepository = {
     }))
 
     await localDb.saveOrder({ ...order, items }, items)
-    inventoryRepository.deductForOrder(lines, order.folio)
+    await inventoryRepository.deductForOrder(ctx, lines, order.folio)
     opsBroadcast.notify()
 
     let tablePatch: RestaurantTable | undefined

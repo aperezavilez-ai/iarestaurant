@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
+import { FileDown } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { useTenantContext } from '@/hooks/useTenantContext'
 import { reportsRepository } from '@/repositories/reportsRepository'
+import { exportSalesReportPdf } from '@/services/pdfReportService'
+import { toast } from '@/components/ui/Toast'
 
 export default function ReportsPage() {
   const ctx = useTenantContext()
@@ -11,30 +15,49 @@ export default function ReportsPage() {
   const [categories, setCategories] = useState<{ name: string; value: number; color: string }[]>([])
   const [summary, setSummary] = useState({ weekSales: 0, weekOrders: 0, avgTicket: 0, cancelRate: 0, cancelled: 0 })
   const [payments, setPayments] = useState<{ method: string; amount: number }[]>([])
+  const [weeklyFull, setWeeklyFull] = useState<{ day: string; sales: number; orders: number }[]>([])
+  const [categoriesFull, setCategoriesFull] = useState<{ name: string; value: number; revenue: number; color: string }[]>([])
 
   useEffect(() => {
     if (!ctx) return
-    Promise.all([
-      reportsRepository.getWeeklySales(ctx),
-      reportsRepository.getCategoryBreakdown(ctx),
-      reportsRepository.getSummary(ctx),
-      reportsRepository.getPaymentBreakdown(ctx),
-    ]).then(([w, c, s, p]) => {
-      setWeekly(w)
-      setCategories(c.length ? c : [{ name: 'Sin datos', value: 100, color: '#94A3B8', revenue: 0 }])
-      setSummary(s)
-      setPayments(p)
+    reportsRepository.getFullReport(ctx).then(({ weekly, categories, summary, payments }) => {
+      setWeekly(weekly)
+      setWeeklyFull(weekly)
+      setCategories(categories.length ? categories : [{ name: 'Sin datos', value: 100, color: '#94A3B8', revenue: 0 }])
+      setCategoriesFull(categories)
+      setSummary(summary)
+      setPayments(payments)
     })
   }, [ctx])
 
   const hasData = summary.weekOrders > 0
 
+  const handleExportPdf = () => {
+    if (!hasData) {
+      toast('No hay ventas para exportar', 'error')
+      return
+    }
+    exportSalesReportPdf({
+      generatedAt: new Date().toLocaleString('es-MX'),
+      summary,
+      weekly: weeklyFull,
+      categories: categoriesFull,
+      payments,
+    })
+    toast('PDF generado', 'success')
+  }
+
   return (
     <div className="space-y-6 animate-fadeUp">
-      <div>
-        <p className="text-[10px] font-mono text-orange-600 uppercase tracking-widest">Análisis</p>
-        <h1 className="text-2xl font-black text-slate-800">Reportes</h1>
-        <p className="text-sm text-slate-500">{hasData ? 'Datos reales de ventas cobradas' : 'Realiza ventas en POS para ver reportes'}</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-mono text-orange-600 uppercase tracking-widest">Análisis</p>
+          <h1 className="text-2xl font-black text-slate-800">Reportes</h1>
+          <p className="text-sm text-slate-500">{hasData ? 'Datos reales de ventas cobradas' : 'Realiza ventas en POS para ver reportes'}</p>
+        </div>
+        <Button variant="outline" className="gap-2 shrink-0" onClick={handleExportPdf} disabled={!hasData}>
+          <FileDown size={16} /> Exportar PDF
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

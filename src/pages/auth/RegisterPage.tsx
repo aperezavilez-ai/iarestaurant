@@ -23,7 +23,7 @@ export default function RegisterPage() {
     try {
       if (remote) {
         await authRepository.signUp(email, password, fullName || restaurant)
-        toast('Cuenta creada — revisa tu correo y vincula el perfil en Supabase', 'success')
+        toast('Cuenta creada — revisa tu correo para activar el acceso', 'success')
       } else {
         await new Promise(r => setTimeout(r, 800))
         toast('Registro demo completado — usa credenciales demo para entrar', 'success')
@@ -43,7 +43,7 @@ export default function RegisterPage() {
         <div className="glass-panel rounded-2xl p-8 bg-white shadow-panel">
           <h2 className="text-xl font-black text-slate-800 mb-1">Crear cuenta</h2>
           <p className="text-sm text-slate-500 mb-6">
-            {remote ? 'Registra tu restaurante con Supabase Auth' : 'Registra tu restaurante en IA·RESTAURANT (demo)'}
+            Registra tu restaurante en IA·RESTAURANT
           </p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input label="Nombre del restaurante" placeholder="Mi Restaurante" icon={<Building2 size={16} />} value={restaurant} onChange={e => setRestaurant(e.target.value)} required />
@@ -51,7 +51,7 @@ export default function RegisterPage() {
             <Input label="Correo" type="email" placeholder="tu@restaurante.com" icon={<Mail size={16} />} value={email} onChange={e => setEmail(e.target.value)} required />
             <Input label="Contraseña" type="password" placeholder="••••••••" icon={<Lock size={16} />} value={password} onChange={e => setPassword(e.target.value)} required minLength={8} />
             <Button type="submit" loading={loading} className="w-full" size="lg">
-              {remote ? 'Crear cuenta' : 'Crear cuenta demo'}
+              Crear cuenta
             </Button>
           </form>
           <p className="text-center text-sm text-slate-500 mt-6">

@@ -7,7 +7,7 @@ import { Logo } from '@/components/brand/Logo'
 import { useAuthStore } from '@/store/authStore'
 import { authRepository } from '@/repositories/authRepository'
 import { bootstrapService } from '@/services/bootstrapService'
-import { isSupabaseConfigured, getDataMode } from '@/lib/config'
+import { isSupabaseConfigured } from '@/lib/config'
 import { toast } from '@/components/ui/Toast'
 
 export default function LoginPage() {
@@ -52,7 +52,7 @@ export default function LoginPage() {
       if (msg.toLowerCase().includes('invalid login')) {
         toast('Correo o contraseña incorrectos', 'error')
       } else if (msg.includes('Email not confirmed')) {
-        toast('Confirma tu correo en Supabase Auth', 'error')
+        toast('Confirma tu correo para continuar', 'error')
       } else {
         toast(msg.length < 80 ? msg : 'Acceso denegado — verifica credenciales', 'error')
       }
@@ -94,7 +94,7 @@ export default function LoginPage() {
           </div>
         </div>
         <p className="text-slate-500 text-xs font-mono">
-          IA·RESTAURANT v1.0 · {getDataMode() === 'local' ? 'Modo local' : 'Supabase conectado'}
+          IA·RESTAURANT v1.0
         </p>
         <div className="absolute inset-0 pointer-events-none opacity-30">
           {[...Array(6)].map((_, i) => (
@@ -163,6 +163,9 @@ export default function LoginPage() {
               </div>
             </div>
           </div>
+          <p className="text-slate-500 text-xs font-mono lg:hidden mt-6 text-center">
+            IA·RESTAURANT v1.0
+          </p>
         </div>
       </div>
     </div>

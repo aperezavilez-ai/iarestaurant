@@ -63,14 +63,14 @@ export const authRepository = {
 
   async signUp(email: string, password: string, fullName: string): Promise<void> {
     if (!isSupabaseConfigured()) {
-      throw new Error('Configura Supabase en .env para registrar cuentas reales')
+      throw new Error('El registro en línea no está disponible en este entorno')
     }
     await authService.signUp(email, password, fullName)
   },
 
   async requestPasswordReset(email: string): Promise<void> {
     if (!isSupabaseConfigured()) {
-      throw new Error('Configura Supabase en .env para recuperar contraseña')
+      throw new Error('La recuperación de contraseña no está disponible en este entorno')
     }
     await authService.resetPassword(email)
   },

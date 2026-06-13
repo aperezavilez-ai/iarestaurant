@@ -36,6 +36,7 @@ interface OpsDataState {
   cashMovements: CashMovement[]
   partialCuts: PartialCashCut[]
   resetIfEmpty: () => void
+  hydrateInventory: (ingredients: Ingredient[], movements: StockMovement[]) => void
   addReservation: (r: Omit<Reservation, 'id' | 'tenant_id' | 'created_at' | 'status'> & { status?: Reservation['status'] }) => Reservation
   updateReservation: (id: string, patch: Partial<Reservation>) => void
   addWaitlist: (e: Omit<WaitlistEntry, 'id' | 'tenant_id' | 'created_at' | 'estimated_wait'> & { estimated_wait?: number }) => WaitlistEntry
@@ -82,6 +83,23 @@ export const useOpsDataStore = create<OpsDataState>()(
         if (!s.customers.length) set({ customers: [...DEMO_CUSTOMERS] })
         if (!s.deliveries.length) set({ deliveries: [...DEMO_DELIVERIES] })
         if (!s.invoices.length) set({ invoices: [...DEMO_INVOICES] })
+      },
+
+      hydrateInventory: (ingredients, movements) => {
+        set((s) => {
+          const ingMap = new Map(s.ingredients.map((i) => [i.id, i]))
+          for (const i of ingredients) ingMap.set(i.id, i)
+          const movMap = new Map<string, StockMovement>()
+          for (const m of movements) movMap.set(m.id, m)
+          for (const m of s.movements) if (!movMap.has(m.id)) movMap.set(m.id, m)
+          const mergedMovements = Array.from(movMap.values())
+            .sort((a, b) => b.created_at.localeCompare(a.created_at))
+            .slice(0, 100)
+          return {
+            ingredients: ingredients.length ? Array.from(ingMap.values()) : s.ingredients,
+            movements: movements.length ? mergedMovements : s.movements,
+          }
+        })
       },
 
       nextInvoiceFolio: () => {

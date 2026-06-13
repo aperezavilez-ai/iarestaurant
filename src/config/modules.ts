@@ -56,8 +56,8 @@ export const ALL_MODULES: ModuleDef[] = [
   { id: 'finance', phase: 31, label: 'Finanzas', path: '/app/finance', icon: DollarSign, group: 'Clientes & Ventas', roles: ['gerente','admin_restaurant'], description: 'CxC, CxP, flujo de efectivo' },
   // Digital
   { id: 'qr', phase: 8, label: 'Menú QR', path: '/app/qr', icon: QrCode, group: 'Digital & QR', roles: ['admin_restaurant','gerente'], description: 'QR comensal y sesiones seguras' },
-  { id: 'comensal', phase: 8, label: 'PWA Comensal', path: '/comensal', icon: Smartphone, group: 'Digital & QR', roles: ['admin_restaurant','gerente','cliente'], description: 'Pedidos desde mesa, pago móvil' },
-  { id: 'mesero-pwa', phase: 0, label: 'PWA Mesero', path: '/mesero', icon: Smartphone, group: 'Digital & QR', roles: ['mesero','capitan','supervisor'], description: 'Mesas, pedidos y notificaciones' },
+  { id: 'comensal', phase: 8, label: 'Comensal', path: '/comensal', icon: Smartphone, group: 'Digital & QR', roles: ['admin_restaurant','gerente','cliente'], description: 'Pedidos desde mesa, pago móvil' },
+  { id: 'mesero-pwa', phase: 0, label: 'Mesero móvil', path: '/mesero', icon: Smartphone, group: 'Digital & QR', roles: ['mesero','capitan','supervisor'], description: 'Mesas, pedidos y notificaciones' },
   // Empresa
   { id: 'users', phase: 1, label: 'Equipo', path: '/app/users', icon: Users, group: 'Empresa & SaaS', roles: ['admin_restaurant','gerente'], description: 'Usuarios y roles' },
   { id: 'hr', phase: 24, label: 'RRHH', path: '/app/hr', icon: Users, group: 'Empresa & SaaS', roles: ['gerente','admin_restaurant'], description: 'Turnos, asistencia, comisiones' },
@@ -87,3 +87,17 @@ export const ALL_MODULES: ModuleDef[] = [
   { id: 'api', phase: 16, label: 'API Pública', path: '/app/api', icon: Globe, group: 'Integraciones & Futuro', roles: ['admin_saas'], description: 'REST, OpenAPI, webhooks' },
   { id: 'customer-success', phase: 36, label: 'Customer Success', path: '/app/customer-success', icon: Sparkles, group: 'Integraciones & Futuro', roles: ['admin_saas'], description: 'Adopción, NPS, retención' },
 ]
+
+export function getDefaultModuleIdsForRole(role: string): string[] {
+  return ALL_MODULES.filter((m) => m.roles.includes(role)).map((m) => m.id)
+}
+
+export function userCanAccessModule(
+  user: { role: string; allowed_modules?: string[] },
+  module: ModuleDef
+): boolean {
+  if (user.allowed_modules?.length) {
+    return user.allowed_modules.includes(module.id)
+  }
+  return module.roles.includes(user.role)
+}

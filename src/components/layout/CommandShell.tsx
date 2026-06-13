@@ -18,6 +18,8 @@ const PAGE_META: Record<string, { title: string; zone: string }> = {
   '/app/tables': { title: 'Control de piso', zone: 'PISO' },
   '/app/kitchen': { title: 'Producción', zone: 'COCINA' },
   '/app/catalog': { title: 'Catálogo', zone: 'MENÚ' },
+  '/app/catalog/comensal': { title: 'Menú comensal', zone: 'MENÚ' },
+  '/app/qr': { title: 'Códigos QR', zone: 'MENÚ' },
   '/app/cash': { title: 'Caja', zone: 'FINANZAS' },
   '/app/reports': { title: 'Análisis', zone: 'INTELIGENCIA' },
   '/app/users': { title: 'Equipo', zone: 'PERSONAL' },

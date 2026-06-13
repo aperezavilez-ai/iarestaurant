@@ -17,7 +17,7 @@ export default function CajaPWA() {
           <div className="flex items-center gap-2">
             <Vault size={20} className="text-brand-600" />
             <div>
-              <p className="text-[10px] font-mono text-orange-600 uppercase">PWA Caja</p>
+              <p className="text-[10px] font-mono text-orange-600 uppercase">Caja</p>
               <p className="font-black text-lg text-slate-800">Validación QR</p>
             </div>
           </div>

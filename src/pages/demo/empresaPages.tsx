@@ -347,8 +347,8 @@ export function VersioningPage() {
           <li>✓ 45+ módulos demo navegables</li>
           <li>✓ POS, mesas, cocina, inventario, CRM</li>
           <li>✓ IA Copiloto y IA-Support</li>
-          <li>✓ PWA Comensal y Mesero</li>
-          <li>→ Próximo: conexión Supabase en producción</li>
+          <li>✓ Comensal y Mesero móvil</li>
+          <li>→ Próximo: despliegue en producción</li>
         </ul>
       </Card>
     </ModuleLayout>

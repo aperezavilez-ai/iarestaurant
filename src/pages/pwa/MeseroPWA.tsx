@@ -35,7 +35,7 @@ export default function MeseroPWA() {
         <PwaBackLink className="mb-2" />
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-mono text-orange-600 uppercase">PWA Mesero</p>
+            <p className="text-[10px] font-mono text-orange-600 uppercase">Mesero</p>
             <p className="font-black text-lg text-slate-800">Mesero Demo</p>
             <p className="text-xs text-slate-500">Salón + Terraza · 5 mesas</p>
           </div>

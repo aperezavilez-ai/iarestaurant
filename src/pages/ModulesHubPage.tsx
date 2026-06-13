@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { ALL_MODULES, MODULE_GROUPS } from '@/config/modules'
+import { ALL_MODULES, MODULE_GROUPS, userCanAccessModule } from '@/config/modules'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
@@ -9,7 +9,7 @@ import { PageBack } from '@/components/layout/PageBack'
 
 export default function ModulesHubPage() {
   const { user } = useAuthStore()
-  const visible = ALL_MODULES.filter(m => user?.role && m.roles.includes(user.role))
+  const visible = ALL_MODULES.filter((m) => user && userCanAccessModule(user, m))
 
   return (
     <div className="space-y-8 animate-fadeUp">
@@ -21,7 +21,7 @@ export default function ModulesHubPage() {
         </div>
         <h2 className="text-2xl font-black text-slate-800">Todos los módulos IA·RESTAURANT</h2>
         <p className="text-sm text-slate-500 mt-1">
-          {visible.length} módulos disponibles para tu rol · Revisa cada fase en el navegador antes de conectar Supabase
+          {visible.length} módulos disponibles para tu rol
         </p>
       </div>
 

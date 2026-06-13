@@ -5,11 +5,12 @@ import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Badge } from '@/components/ui/Badge'
-import { Users, Clock, RefreshCw, LayoutGrid, Map, Split, UserCheck, ArrowRightLeft, Merge, ShoppingBag, UtensilsCrossed } from 'lucide-react'
+import { Users, Clock, RefreshCw, LayoutGrid, Map, Split, UserCheck, ArrowRightLeft, Merge, ShoppingBag, UtensilsCrossed, Loader2 } from 'lucide-react'
 import { useTenantContext } from '@/hooks/useTenantContext'
 import { useOpsSync } from '@/hooks/useOpsSync'
 import { tableRepository } from '@/repositories/tableRepository'
 import { orderRepository } from '@/repositories/orderRepository'
+import { localDb } from '@/lib/localDb'
 import { SEED_STAFF } from '@/data/seed'
 import { toast } from '@/components/ui/Toast'
 import type { RestaurantTable, TableStatus, Order } from '@/types'
@@ -30,6 +31,7 @@ export default function TablesPage() {
   const navigate = useNavigate()
   const [tables, setTables] = useState<RestaurantTable[]>([])
   const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<TableStatus | 'todas'>('todas')
   const [selectedArea, setSelectedArea] = useState('todas')
   const [view, setView] = useState<'grid' | 'plano'>('grid')
@@ -43,12 +45,22 @@ export default function TablesPage() {
 
   const load = useCallback(async () => {
     if (!ctx) return
+    await localDb.ensureLocalSeed()
+    const localTables = await localDb.getTables(ctx.tenantId, ctx.sucursalId)
+    const localOrders = await localDb.getActiveOrders(ctx.tenantId, ctx.sucursalId)
+    if (localTables.length) {
+      setTables(localTables)
+      setLoading(false)
+    }
+    if (localOrders.length) setOrders(localOrders)
+
     const [t, o] = await Promise.all([
       tableRepository.getTables(ctx),
       orderRepository.getActiveOrders(ctx),
     ])
     setTables(t)
     setOrders(o)
+    setLoading(false)
   }, [ctx])
 
   useOpsSync(load, 4000)
@@ -226,7 +238,11 @@ export default function TablesPage() {
           </div>
         </CardHeader>
         <CardBody>
-          {view === 'grid' ? (
+          {loading && tables.length === 0 ? (
+            <div className="flex items-center justify-center gap-2 py-20 text-slate-500 text-sm">
+              <Loader2 size={18} className="animate-spin" /> Cargando mesas…
+            </div>
+          ) : view === 'grid' ? (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
               {filtered.map(table => <TableCard key={table.id} table={table} />)}
             </div>

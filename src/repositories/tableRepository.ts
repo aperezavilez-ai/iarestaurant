@@ -1,7 +1,7 @@
 import { tableService } from '@/services/tableService'
 import { localDb } from '@/lib/localDb'
 import { opsBroadcast } from '@/services/opsBroadcast'
-import { withLocalFirst } from './base'
+import { withHybridList } from './base'
 import type { RestaurantTable, Order } from '@/types'
 import type { TenantContext } from '@/types/context'
 
@@ -12,10 +12,12 @@ async function getTableById(ctx: TenantContext, tableId: string) {
 
 export const tableRepository = {
   async getTables(ctx: TenantContext): Promise<RestaurantTable[]> {
-    return withLocalFirst(
+    const tables = await withHybridList(
       () => localDb.getTables(ctx.tenantId, ctx.sucursalId),
       () => tableService.getTables(ctx.tenantId, ctx.sucursalId)
     )
+    void Promise.all(tables.map((t) => localDb.updateTable(t)))
+    return tables
   },
 
   async getTableOrder(ctx: TenantContext, tableId: string): Promise<Order | null> {

@@ -12,6 +12,8 @@ import TablesPage from '@/pages/TablesPage'
 import POSPage from '@/pages/POSPage'
 import KitchenPage from '@/pages/KitchenPage'
 import CatalogPage from '@/pages/CatalogPage'
+import GuestMenuPreviewPage from '@/pages/GuestMenuPreviewPage'
+import { MenuLayout } from '@/components/menu/MenuLayout'
 import ReportsPage from '@/pages/ReportsPage'
 import SettingsPage from '@/pages/SettingsPage'
 import CashPage from '@/pages/CashPage'
@@ -71,7 +73,10 @@ export default function App() {
             <Route path="tables" element={<TablesPage />} />
             <Route path="kitchen" element={<KitchenPage />} />
             <Route path="production" element={<ProductionPage />} />
-            <Route path="catalog" element={<CatalogPage />} />
+            <Route path="catalog" element={<MenuLayout />}>
+              <Route index element={<CatalogPage />} />
+              <Route path="comensal" element={<GuestMenuPreviewPage />} />
+            </Route>
             <Route path="categories" element={<CategoriesPage />} />
             <Route path="cash" element={<CashPage />} />
             <Route path="promotions" element={<PromotionsPage />} />

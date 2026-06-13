@@ -13,6 +13,10 @@ export type UserRole =
   | 'cocina'
   | 'cliente'
 
+export const ASSIGNABLE_STAFF_ROLES: UserRole[] = [
+  'cajero', 'mesero', 'cocina', 'supervisor', 'capitan', 'gerente',
+]
+
 export interface Tenant {
   id: string
   name: string
@@ -62,6 +66,7 @@ export interface User {
   sucursal_id?: string
   avatar_url?: string
   is_active: boolean
+  allowed_modules?: string[]
   last_login?: string
   created_at: string
 }

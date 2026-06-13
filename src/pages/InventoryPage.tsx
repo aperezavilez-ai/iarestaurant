@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AlertTriangle, ArrowDown, ArrowUp } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -7,26 +7,46 @@ import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import { formatCurrency } from '@/lib/utils'
 import { inventoryRepository } from '@/repositories/inventoryRepository'
+import { useTenantContext } from '@/hooks/useTenantContext'
 import { toast } from '@/components/ui/Toast'
 
 export default function InventoryPage() {
+  const ctx = useTenantContext()
   const [tick, setTick] = useState(0)
+  const [loading, setLoading] = useState(true)
   const ingredients = inventoryRepository.getIngredients()
   const movements = inventoryRepository.getMovements()
   const lowStock = inventoryRepository.getLowStock()
   const [adjustId, setAdjustId] = useState<string | null>(null)
   const [delta, setDelta] = useState('')
 
-  const refresh = () => setTick(t => t + 1)
+  useEffect(() => {
+    if (!ctx) return
+    setLoading(true)
+    inventoryRepository.ensureLoaded(ctx).finally(() => {
+      setLoading(false)
+      setTick((t) => t + 1)
+    })
+  }, [ctx])
 
-  const handleAdjust = () => {
-    if (!adjustId || !delta) return
-    const ing = ingredients.find(i => i.id === adjustId)
-    inventoryRepository.adjustStock(adjustId, Number(delta), 'Ajuste manual')
+  const refresh = () => setTick((t) => t + 1)
+
+  const handleAdjust = async () => {
+    if (!ctx || !adjustId || !delta) return
+    const ing = ingredients.find((i) => i.id === adjustId)
+    await inventoryRepository.adjustStock(ctx, adjustId, Number(delta), 'Ajuste manual')
     toast(`Stock de ${ing?.name} actualizado`, 'success')
     setAdjustId(null)
     setDelta('')
     refresh()
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20 text-slate-500 text-sm">
+        Cargando inventario…
+      </div>
+    )
   }
 
   return (
@@ -46,19 +66,19 @@ export default function InventoryPage() {
       {lowStock.length > 0 && (
         <Card className="p-4 bg-red-50 border-red-200">
           <p className="text-sm font-bold text-ops-danger flex items-center gap-2"><AlertTriangle size={16} /> Alertas de reabastecimiento</p>
-          <p className="text-xs text-slate-600 mt-1">{lowStock.map(i => i.name).join(', ')}</p>
+          <p className="text-xs text-slate-600 mt-1">{lowStock.map((i) => i.name).join(', ')}</p>
         </Card>
       )}
 
       <Card className="overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-brand-50/50 border-b"><tr>
-            {['Ingrediente', 'Unidad', 'Existencia', 'Mínimo', 'Costo', 'Estado', ''].map(h => (
+            {['Ingrediente', 'Unidad', 'Existencia', 'Mínimo', 'Costo', 'Estado', ''].map((h) => (
               <th key={h || 'a'} className="text-left px-4 py-3 text-[10px] font-mono text-slate-500 uppercase">{h}</th>
             ))}
           </tr></thead>
           <tbody className="divide-y">
-            {ingredients.map(i => (
+            {ingredients.map((i) => (
               <tr key={i.id} className="hover:bg-brand-50/30">
                 <td className="px-4 py-3 font-semibold">{i.name}</td>
                 <td className="px-4 py-3 text-slate-500">{i.unit}</td>
@@ -86,7 +106,7 @@ export default function InventoryPage() {
         <Card className="p-4">
           <p className="font-bold text-slate-800 mb-3">Movimientos recientes (kardex)</p>
           <div className="space-y-2 max-h-48 overflow-y-auto">
-            {movements.slice(0, 15).map(m => (
+            {movements.slice(0, 15).map((m) => (
               <div key={m.id} className="flex justify-between text-xs border-b border-command-border pb-2">
                 <span className={m.delta < 0 ? 'text-ops-danger' : 'text-ops-success'}>
                   {m.delta > 0 ? '+' : ''}{m.delta} {m.ingredient_name}
@@ -100,7 +120,7 @@ export default function InventoryPage() {
 
       <Modal open={!!adjustId} onClose={() => setAdjustId(null)} title="Ajustar stock" size="sm">
         <div className="p-5 space-y-4">
-          <Input label="Cantidad (+ entrar / − salir)" type="number" value={delta} onChange={e => setDelta(e.target.value)} />
+          <Input label="Cantidad (+ entrar / − salir)" type="number" value={delta} onChange={(e) => setDelta(e.target.value)} />
           <Button className="w-full" onClick={handleAdjust}>Aplicar ajuste</Button>
         </div>
       </Modal>

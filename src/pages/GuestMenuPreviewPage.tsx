@@ -1,62 +1,85 @@
 import { useEffect, useState } from 'react'
-import { ExternalLink, QrCode, Loader2 } from 'lucide-react'
+import { ExternalLink, QrCode, Loader2, Download } from 'lucide-react'
 import { Card, CardBody } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { formatCurrency } from '@/lib/utils'
 import { getProductImageUrl } from '@/lib/productImages'
-import { useTenantContext } from '@/hooks/useTenantContext'
 import { useAuthStore } from '@/store/authStore'
-import { catalogRepository } from '@/repositories/catalogRepository'
+import { publicMenuService } from '@/services/publicMenuService'
+import { MenuQrCode, comensalMenuUrl } from '@/components/qr/MenuQrCode'
 import type { Category, Product } from '@/types'
 
+const DEMO_MESA = 5
+
 export default function GuestMenuPreviewPage() {
-  const ctx = useTenantContext()
   const tenant = useAuthStore((s) => s.tenant)
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
+  const [tenantName, setTenantName] = useState('IA·RESTAURANT')
 
-  const demoUrl =
-    typeof window !== 'undefined' ? `${window.location.origin}/comensal?mesa=5` : '/comensal?mesa=5'
+  const demoUrl = comensalMenuUrl(DEMO_MESA)
 
   useEffect(() => {
-    if (!ctx) return
+    let cancelled = false
     setLoading(true)
-    Promise.all([
-      catalogRepository.getProducts(ctx),
-      catalogRepository.getCategories(ctx),
-    ])
-      .then(([prods, cats]) => {
-        setProducts(prods.filter((p) => p.is_active))
-        setCategories(cats.filter((c) => c.is_active))
+    Promise.all([publicMenuService.getMenu(), publicMenuService.getTenantName()])
+      .then(([menu, name]) => {
+        if (cancelled) return
+        setProducts(menu.products.filter((p) => p.is_active))
+        setCategories(menu.categories.filter((c) => c.is_active))
+        setTenantName(name)
       })
-      .finally(() => setLoading(false))
-  }, [ctx])
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const downloadQr = () => {
+    const svg = document.getElementById('guest-menu-qr-svg')
+    if (!svg) return
+    const blob = new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `menu-mesa-${DEMO_MESA}-qr.svg`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
 
   return (
     <div className="space-y-5">
       <Card className="p-4 bg-brand-50/60 border-brand-200">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex-1 min-w-[200px]">
             <p className="font-bold text-slate-800">Vista del comensal (QR)</p>
             <p className="text-sm text-slate-600 mt-1">
               Así ve el cliente al escanear el código en la mesa: solo nombre y precio, sin costos ni márgenes.
             </p>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <a href={demoUrl} target="_blank" rel="noreferrer">
-              <Button variant="outline" size="sm" className="gap-2">
-                <ExternalLink size={14} /> Abrir en celular
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <MenuQrCode id="guest-menu-qr-svg" url={demoUrl} size={140} label={`Mesa ${DEMO_MESA}`} />
+            <div className="flex flex-col gap-2">
+              <a href={demoUrl} target="_blank" rel="noreferrer">
+                <Button variant="outline" size="sm" className="gap-2 w-full">
+                  <ExternalLink size={14} /> Abrir en celular
+                </Button>
+              </a>
+              <Button size="sm" variant="outline" className="gap-2" onClick={downloadQr}>
+                <Download size={14} /> Descargar QR
               </Button>
-            </a>
-            <a href="/app/qr">
-              <Button size="sm" className="gap-2">
-                <QrCode size={14} /> Códigos QR
-              </Button>
-            </a>
+              <a href="/app/qr">
+                <Button size="sm" className="gap-2 w-full">
+                  <QrCode size={14} /> Todas las mesas
+                </Button>
+              </a>
+            </div>
           </div>
         </div>
+        <p className="text-[10px] font-mono text-slate-500 mt-3 break-all">{demoUrl}</p>
       </Card>
 
       {loading ? (
@@ -68,7 +91,7 @@ export default function GuestMenuPreviewPage() {
           <div className="w-full max-w-md rounded-3xl border-4 border-slate-200 bg-command-bg shadow-panel overflow-hidden">
             <header className="gradient-amber text-white p-4">
               <p className="text-[10px] opacity-80 uppercase tracking-widest">Menú digital</p>
-              <p className="font-black text-lg">{tenant?.name || 'IA·RESTAURANT'}</p>
+              <p className="font-black text-lg">{tenant?.name || tenantName}</p>
               <p className="text-xs opacity-80 mt-1">Mesa demo · Salón principal</p>
             </header>
 

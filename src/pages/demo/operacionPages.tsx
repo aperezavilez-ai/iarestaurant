@@ -10,8 +10,9 @@ import { catalogRepository } from '@/repositories/catalogRepository'
 import { DEMO_PROMOTIONS, DEMO_RESERVATIONS, DEMO_DELIVERIES, PRODUCTION_CENTERS } from '@/data/demoSeed'
 import type { Order, Category } from '@/types'
 import { DEMO_QR_SESSIONS } from '@/data/demoSeed'
-import { Plus, Printer, QrCode, FileText } from 'lucide-react'
+import { Plus, Printer, QrCode, FileText, Download } from 'lucide-react'
 import { MenuSectionNav } from '@/components/menu/MenuSectionNav'
+import { MenuQrCode, comensalMenuUrl } from '@/components/qr/MenuQrCode'
 import { toast } from '@/components/ui/Toast'
 import { invoiceRepository } from '@/repositories/invoiceRepository'
 import { Modal } from '@/components/ui/Modal'
@@ -233,46 +234,57 @@ export function PrintingPage() {
 }
 
 export function QRMenuPage() {
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
   const demoMesas = [5, 12, 4, 10]
+
+  const downloadQr = (mesa: number) => {
+    const svg = document.getElementById(`qr-mesa-${mesa}`)
+    if (!svg) return
+    const blob = new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `menu-mesa-${mesa}-qr.svg`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
 
   return (
     <div className="space-y-5 animate-fadeUp">
       <MenuSectionNav />
     <ModuleLayout phase={8} title="Menú QR y sesiones" description="Escanea el QR → el comensal arma su pedido → Caja valida → Cocina prepara → Mesero recibe alerta."
       stats={[
-        { label: 'Sesiones demo', value: String(demoMesas.length) },
+        { label: 'Mesas con QR', value: String(demoMesas.length) },
         { label: 'Apps QR', value: '4' },
       ]}>
       <Card className="p-5 bg-brand-50/50 border-brand-200 mb-4">
         <p className="font-bold text-slate-800 mb-2">Flujo conectado en demo</p>
         <ol className="text-sm text-slate-600 space-y-1 list-decimal list-inside">
-          <li>Abre <strong>/comensal?mesa=5</strong> en el celular (o pestaña)</li>
+          <li>Imprime o muestra el QR de cada mesa</li>
+          <li>El comensal escanea → <strong>/comensal?mesa=N</strong></li>
           <li>Abre <strong>/caja</strong> para validar pedidos</li>
-          <li>Abre <strong>/mesero</strong> para ver alertas</li>
-          <li>Abre <strong>Cocina</strong> en la app principal</li>
+          <li>Abre <strong>/mesero</strong> y <strong>Cocina</strong> para operación</li>
         </ol>
       </Card>
-      <div className="grid gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         {demoMesas.map(num => {
-          const url = `${origin}/comensal?mesa=${num}`
+          const url = comensalMenuUrl(num)
           const session = DEMO_QR_SESSIONS.find(s => s.table_number === num)
           return (
             <Card key={num} className="p-4">
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <div>
+              <div className="flex items-start justify-between flex-wrap gap-3">
+                <div className="flex-1 min-w-[140px]">
                   <p className="font-bold text-lg">Mesa {num}</p>
                   <p className="text-xs text-slate-500">{session?.area || 'Salón'} · Mesero Demo</p>
-                  <p className="text-[10px] font-mono text-brand-600 mt-1 break-all">{url}</p>
+                  <p className="text-[10px] font-mono text-brand-600 mt-2 break-all">{url}</p>
                 </div>
-                <div className="flex flex-col gap-2 items-end">
-                  <div className="w-20 h-20 bg-white border-2 border-brand-300 rounded-xl flex items-center justify-center">
-                    <QrCode size={40} className="text-brand-600" />
-                  </div>
-                  <a href={url} target="_blank" rel="noreferrer">
-                    <Button size="sm">Abrir menú QR</Button>
-                  </a>
-                </div>
+                <MenuQrCode id={`qr-mesa-${num}`} url={url} size={120} label={`Mesa ${num}`} />
+              </div>
+              <div className="flex gap-2 mt-4 flex-wrap">
+                <a href={url} target="_blank" rel="noreferrer" className="flex-1 min-w-[120px]">
+                  <Button size="sm" className="w-full">Abrir menú</Button>
+                </a>
+                <Button size="sm" variant="outline" className="gap-1" onClick={() => downloadQr(num)}>
+                  <Download size={14} /> SVG
+                </Button>
               </div>
             </Card>
           )

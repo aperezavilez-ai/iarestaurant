@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from '@/lib/config'
+import { withTimeout } from '@/lib/async'
 import { localDb } from '@/lib/localDb'
 
 export function isOnline(): boolean {
@@ -7,11 +8,12 @@ export function isOnline(): boolean {
 
 export async function withLocalFirst<T>(
   localFn: () => Promise<T>,
-  remoteFn?: () => Promise<T>
+  remoteFn?: () => Promise<T>,
+  timeoutMs = 6000
 ): Promise<T> {
   if (isSupabaseConfigured() && isOnline() && remoteFn) {
     try {
-      const remote = await remoteFn()
+      const remote = await withTimeout(remoteFn(), timeoutMs)
       return remote
     } catch {
       return localFn()

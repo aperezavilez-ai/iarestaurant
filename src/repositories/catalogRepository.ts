@@ -1,22 +1,31 @@
 import { catalogService } from '@/services/catalogService'
 import { localDb } from '@/lib/localDb'
-import { withLocalFirst } from './base'
+import { withHybridList } from './base'
 import { isSupabaseConfigured } from '@/lib/config'
+import { withTimeout } from '@/lib/async'
 import type { Product, Category } from '@/types'
 import type { TenantContext } from '@/types/context'
 
+async function remoteProducts(tenantId: string) {
+  return withTimeout(catalogService.getProducts(tenantId)).catch(() => [] as Product[])
+}
+
+async function remoteCategories(tenantId: string) {
+  return withTimeout(catalogService.getCategories(tenantId)).catch(() => [] as Category[])
+}
+
 export const catalogRepository = {
   async getCategories(ctx: TenantContext): Promise<Category[]> {
-    return withLocalFirst(
+    return withHybridList(
       () => localDb.getCategories(ctx.tenantId),
-      () => catalogService.getCategories(ctx.tenantId)
+      () => remoteCategories(ctx.tenantId)
     )
   },
 
   async getProducts(ctx: TenantContext): Promise<Product[]> {
-    return withLocalFirst(
+    return withHybridList(
       () => localDb.getProducts(ctx.tenantId),
-      () => catalogService.getProducts(ctx.tenantId)
+      () => remoteProducts(ctx.tenantId)
     )
   },
 

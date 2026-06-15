@@ -37,7 +37,7 @@ const PAGE_META: Record<string, { title: string; zone: string }> = {
 
 export function CommandShell() {
   const location = useLocation()
-  const { user, tenant, logout } = useAuthStore()
+  const { user, tenant, sucursal, logout } = useAuthStore()
   const { stats, insights } = useLiveOps()
   const [copilotOpen, setCopilotOpen] = useState(true)
 
@@ -73,7 +73,15 @@ export function CommandShell() {
     <div className="h-screen bg-command-bg ops-grid-bg overflow-hidden flex flex-col">
       <header className="shrink-0 glass-warm">
         <div className="px-4 py-3 flex items-center justify-between gap-4">
-          <Logo size="sm" showTagline />
+          <div className="flex items-center gap-3 min-w-0">
+            <Logo size="sm" showTagline />
+            {tenant && (
+              <div className="hidden md:block border-l border-command-border pl-3 min-w-0">
+                <p className="font-black text-slate-800 text-sm leading-tight truncate">{tenant.name}</p>
+                {sucursal && <p className="text-[10px] text-slate-500 font-mono truncate">{sucursal.name}</p>}
+              </div>
+            )}
+          </div>
           <div className="hidden lg:flex items-center gap-3 text-xs">
             {stats && (
               <>

@@ -12,6 +12,9 @@ import { TicketModal } from '@/components/pos/TicketModal'
 import { formatCurrency, cn } from '@/lib/utils'
 import { toast } from '@/components/ui/Toast'
 import { useTenantContext } from '@/hooks/useTenantContext'
+import { useAuthStore } from '@/store/authStore'
+import { tenantRepository } from '@/repositories/tenantRepository'
+import { buildBusinessBranding } from '@/lib/businessBranding'
 import { catalogRepository } from '@/repositories/catalogRepository'
 import { orderRepository } from '@/repositories/orderRepository'
 import { tableRepository } from '@/repositories/tableRepository'
@@ -33,6 +36,8 @@ const PROMO_CODES: Record<string, { percent: number; label: string }> = {
 
 export default function POSPage() {
   const ctx = useTenantContext()
+  const { tenant, sucursal } = useAuthStore()
+  const [businessBranding, setBusinessBranding] = useState(buildBusinessBranding(tenant, sucursal))
   const [searchParams] = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
   const [tables, setTables] = useState<RestaurantTable[]>([])
@@ -77,6 +82,15 @@ export default function POSPage() {
     tableRepository.getTables(ctx).then(setTables)
     refreshCashStatus()
   }, [ctx])
+
+  useEffect(() => {
+    if (!ctx) return
+    tenantRepository.getBusinessProfile(ctx).then((profile) => {
+      if (profile) {
+        setBusinessBranding(buildBusinessBranding(profile.tenant, profile.sucursal, profile.organization))
+      }
+    })
+  }, [ctx, tenant, sucursal])
 
   useEffect(() => {
     const mesa = searchParams.get('mesa')
@@ -473,6 +487,7 @@ export default function POSPage() {
         payment={ticketPayment}
         tableLabel={ticketTableLabel}
         change={ticketChange}
+        business={businessBranding}
       />
     </div>
   )

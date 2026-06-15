@@ -141,6 +141,21 @@ export const localDb = {
     return all.find((o) => o.tenant_id === tenantId)
   },
 
+  async saveTenant(tenant: Tenant) {
+    const db = await getDb()
+    await db.put('tenants', tenant)
+  },
+
+  async saveOrganization(org: Organization) {
+    const db = await getDb()
+    await db.put('organizations', org)
+  },
+
+  async saveSucursal(sucursal: Sucursal) {
+    const db = await getDb()
+    await db.put('sucursales', sucursal)
+  },
+
   async getCategories(tenantId: string) {
     const all = await getAll('categories')
     return all.filter((c) => c.tenant_id === tenantId && c.is_active).sort((a, b) => a.sort_order - b.sort_order)

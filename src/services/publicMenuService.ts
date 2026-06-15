@@ -10,7 +10,7 @@ const SEED_MENU = {
 }
 
 export const publicMenuService = {
-  async getMenu(): Promise<{ products: Product[]; categories: Category[] }> {
+  async getMenu(tenantId = DEMO_TENANT_ID): Promise<{ products: Product[]; categories: Category[] }> {
     if (!isSupabaseConfigured()) return SEED_MENU
 
     try {
@@ -20,7 +20,7 @@ export const publicMenuService = {
             supabase
               .from('products')
               .select('*, category:categories(*)')
-              .eq('tenant_id', DEMO_TENANT_ID)
+              .eq('tenant_id', tenantId)
               .eq('is_active', true)
               .order('name')
           ),
@@ -28,7 +28,7 @@ export const publicMenuService = {
             supabase
               .from('categories')
               .select('*')
-              .eq('tenant_id', DEMO_TENANT_ID)
+              .eq('tenant_id', tenantId)
               .eq('is_active', true)
               .order('sort_order')
           ),
@@ -48,12 +48,12 @@ export const publicMenuService = {
     return SEED_MENU
   },
 
-  async getTenantName(): Promise<string> {
+  async getTenantName(tenantId = DEMO_TENANT_ID): Promise<string> {
     if (!isSupabaseConfigured()) return 'IA·RESTAURANT'
     try {
       const { data } = await withTimeout(
         Promise.resolve(
-          supabase.from('tenants').select('name').eq('id', DEMO_TENANT_ID).maybeSingle()
+          supabase.from('tenants').select('name').eq('id', tenantId).maybeSingle()
         ),
         4000
       )
@@ -71,9 +71,7 @@ export const publicMenuService = {
           Promise.resolve(
             supabase
               .from('tables')
-              .select('id, number, area_id, assigned_waiter_id, area:table_areas(name)')
-              .eq('tenant_id', DEMO_TENANT_ID)
-              .eq('sucursal_id', DEMO_SUCURSAL_ID)
+              .select('id, number, area_id, tenant_id, sucursal_id, assigned_waiter_id, area:table_areas(name)')
               .eq('number', num)
               .maybeSingle()
           ),
@@ -103,6 +101,8 @@ export const publicMenuService = {
           return {
             id: table.id as string,
             number: table.number as number,
+            tenant_id: (table.tenant_id as string) || DEMO_TENANT_ID,
+            sucursal_id: (table.sucursal_id as string) || DEMO_SUCURSAL_ID,
             area_id: table.area_id as string,
             area_name: area?.name || 'Sin área',
             waiter_id: (table.assigned_waiter_id as string) || '',
@@ -115,6 +115,12 @@ export const publicMenuService = {
     }
 
     const { getTableByNumber } = await import('@/lib/tableLookup')
-    return getTableByNumber(num)
+    const seedTable = getTableByNumber(num)
+    if (!seedTable) return null
+    return {
+      ...seedTable,
+      tenant_id: DEMO_TENANT_ID,
+      sucursal_id: DEMO_SUCURSAL_ID,
+    }
   },
 }

@@ -8,28 +8,39 @@ import { useLiveFlowStore } from '@/store/liveFlowStore'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/authStore'
 import { useTenantContext } from '@/hooks/useTenantContext'
-import { localDb } from '@/lib/localDb'
+import { tenantRepository } from '@/repositories/tenantRepository'
 import { catalogRepository } from '@/repositories/catalogRepository'
 import { tableRepository } from '@/repositories/tableRepository'
 import type { Organization } from '@/types'
 
 export default function SettingsPage() {
-  const { tenant } = useAuthStore()
+  const { tenant, sucursal, setTenant } = useAuthStore()
   const ctx = useTenantContext()
   const [org, setOrg] = useState<Organization | null>(null)
+  const [form, setForm] = useState({ tenantName: '', rfc: '', phone: '', email: '', address: '' })
+  const [saving, setSaving] = useState(false)
   const [usage, setUsage] = useState({ sucursales: 0, usuarios: 4, mesas: 0, productos: 0 })
 
   useEffect(() => {
     if (!ctx) return
+    tenantRepository.getBusinessProfile(ctx).then((profile) => {
+      if (!profile) return
+      setOrg(profile.organization)
+      setForm({
+        tenantName: profile.tenant.name,
+        rfc: profile.organization?.rfc || '',
+        phone: profile.organization?.phone || profile.sucursal?.phone || '',
+        email: profile.organization?.email || '',
+        address: profile.organization?.address || profile.sucursal?.address || '',
+      })
+    })
     Promise.all([
-      localDb.getOrganization(ctx.tenantId),
-      localDb.getSucursales(ctx.tenantId),
+      tenantRepository.getBusinessProfile(ctx),
       catalogRepository.getProducts(ctx),
       tableRepository.getTables(ctx),
-    ]).then(([organization, sucursales, products, tables]) => {
-      setOrg(organization || null)
+    ]).then(([profile, products, tables]) => {
       setUsage({
-        sucursales: sucursales.length,
+        sucursales: profile?.sucursal ? 1 : 0,
         usuarios: 4,
         mesas: tables.length,
         productos: products.filter(p => p.is_active).length,
@@ -40,7 +51,20 @@ export default function SettingsPage() {
   const validationMode = useLiveFlowStore(s => s.validationMode)
   const setValidationMode = useLiveFlowStore(s => s.setValidationMode)
 
-  const handleSave = () => toast('Configuración guardada', 'success')
+  const handleSave = async () => {
+    if (!ctx || !form.tenantName.trim()) return
+    setSaving(true)
+    try {
+      const profile = await tenantRepository.updateBusiness(ctx, form)
+      setTenant(profile.tenant)
+      setOrg(profile.organization)
+      toast('Datos del negocio guardados', 'success')
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'No se pudo guardar', 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -71,17 +95,28 @@ export default function SettingsPage() {
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-brand-50 text-brand-600"><Building2 size={18} /></div>
-            <h3 className="font-bold text-slate-800">Información del restaurante</h3>
+            <div>
+              <h3 className="font-bold text-slate-800">Información del restaurante</h3>
+              <p className="text-xs text-slate-500">Aparece en el sistema, tickets y menú comensal</p>
+            </div>
           </div>
         </CardHeader>
         <CardBody className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Nombre del negocio" defaultValue={tenant?.name} />
-            <Input label="RFC / NIT" defaultValue={org?.rfc} />
-            <Input label="Teléfono" defaultValue={org?.phone} />
-            <Input label="Correo electrónico" defaultValue={org?.email} type="email" />
+            <Input label="Nombre del negocio" value={form.tenantName} onChange={e => setForm(f => ({ ...f, tenantName: e.target.value }))} />
+            <Input label="RFC / NIT" value={form.rfc} onChange={e => setForm(f => ({ ...f, rfc: e.target.value }))} />
+            <Input label="Teléfono" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+            <Input label="Correo electrónico" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} type="email" />
+            <Input label="Dirección" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} className="sm:col-span-2" />
           </div>
-          <div className="flex justify-end"><Button onClick={handleSave}>Guardar cambios</Button></div>
+          {sucursal && (
+            <p className="text-xs text-slate-500">Sucursal activa: <strong>{sucursal.name}</strong></p>
+          )}
+          <div className="flex justify-end">
+            <Button onClick={handleSave} loading={saving} disabled={!form.tenantName.trim()}>
+              Guardar cambios
+            </Button>
+          </div>
         </CardBody>
       </Card>
 
@@ -94,9 +129,9 @@ export default function SettingsPage() {
         </CardHeader>
         <CardBody>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Input label="Zona horaria" defaultValue="America/Mexico_City" />
-            <Input label="Moneda" defaultValue="MXN" />
-            <Input label="IVA (%)" defaultValue="16" type="number" />
+            <Input label="Zona horaria" defaultValue={sucursal?.timezone || 'America/Mexico_City'} />
+            <Input label="Moneda" defaultValue={sucursal?.currency || 'MXN'} />
+            <Input label="IVA (%)" defaultValue={String(sucursal?.tax_rate || 16)} type="number" />
           </div>
         </CardBody>
       </Card>
@@ -111,7 +146,7 @@ export default function SettingsPage() {
         <CardBody>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label="WhatsApp para alertas" placeholder="+52 55 0000 0000" />
-            <Input label="Email de reportes" placeholder="reportes@iarestaurant.com" type="email" />
+            <Input label="Email de reportes" placeholder={org?.email || 'reportes@restaurante.com'} type="email" />
           </div>
         </CardBody>
       </Card>

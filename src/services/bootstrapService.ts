@@ -1,5 +1,6 @@
 import { isSupabaseConfigured } from '@/lib/config'
 import { withTimeout } from '@/lib/async'
+import { tenantService } from '@/services/tenantService'
 import { localDb } from '@/lib/localDb'
 import { supabase } from '@/lib/supabase'
 import { useOpsDataStore } from '@/store/opsDataStore'
@@ -35,8 +36,8 @@ export const bootstrapService = {
 async function pullFromRemoteInner(ctx: TenantContext): Promise<{ ok: boolean; tables: string[] }> {
   const synced: string[] = []
 
-  try {
-    const [categories, products, areas, tables, orders, payments, ingredients, movements] = await Promise.all([
+    try {
+      const [categories, products, areas, tables, orders, payments, ingredients, movements, tenant, organization, sucursales] = await Promise.all([
         supabase.from('categories').select('*').eq('tenant_id', ctx.tenantId),
         supabase.from('products').select('*').eq('tenant_id', ctx.tenantId),
         supabase.from('table_areas').select('*').eq('sucursal_id', ctx.sucursalId),
@@ -60,7 +61,25 @@ async function pullFromRemoteInner(ctx: TenantContext): Promise<{ ok: boolean; t
           .eq('tenant_id', ctx.tenantId)
           .order('created_at', { ascending: false })
           .limit(100),
+        tenantService.getTenant(ctx.tenantId),
+        tenantService.getOrganization(ctx.tenantId),
+        tenantService.getSucursales(ctx.tenantId),
       ])
+
+      if (tenant) {
+        await localDb.saveTenant(tenant)
+        synced.push('tenants')
+      }
+
+      if (organization) {
+        await localDb.saveOrganization(organization)
+        synced.push('organizations')
+      }
+
+      if (sucursales?.length) {
+        for (const s of sucursales) await localDb.saveSucursal(s)
+        synced.push('sucursales')
+      }
 
       if (categories.data?.length) {
         for (const c of categories.data) await localDb.saveCategory(c)

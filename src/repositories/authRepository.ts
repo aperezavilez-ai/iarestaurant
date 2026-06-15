@@ -29,6 +29,33 @@ function normalizeLoginError(email: string, err: unknown): Error {
   return new Error('Credenciales incorrectas')
 }
 
+async function persistBusinessContext(tenantId: string, sucursalId?: string) {
+  const [tenant, organization, sucursales] = await Promise.all([
+    tenantService.getTenant(tenantId),
+    tenantService.getOrganization(tenantId),
+    tenantService.getSucursales(tenantId),
+  ])
+  if (tenant) await localDb.saveTenant(tenant)
+  if (organization) await localDb.saveOrganization(organization)
+  for (const s of sucursales) await localDb.saveSucursal(s)
+  if (sucursalId) {
+    const sucursal = sucursales.find((s) => s.id === sucursalId) || (await tenantService.getSucursal(sucursalId))
+    if (sucursal) await localDb.saveSucursal(sucursal)
+  }
+}
+
+async function buildSession(profile: User): Promise<AuthSession | null> {
+  const tenant = await tenantService.getTenant(profile.tenant_id)
+  const sucursal = profile.sucursal_id
+    ? await tenantService.getSucursal(profile.sucursal_id)
+    : (await tenantService.getSucursales(profile.tenant_id))[0]
+  if (!tenant || !sucursal) return null
+  if (isSupabaseConfigured()) {
+    await persistBusinessContext(profile.tenant_id, sucursal.id)
+  }
+  return { user: profile, tenant, sucursal }
+}
+
 export interface AuthSession {
   user: User
   tenant: Tenant
@@ -45,12 +72,9 @@ export const authRepository = {
         const { user: authUser } = await authService.signIn(normalizedEmail, password)
         const profile = await authService.getUserProfile(authUser.id)
         if (!profile) throw new Error('Perfil no encontrado en el sistema')
-        const tenant = await tenantService.getTenant(profile.tenant_id)
-        const sucursal = profile.sucursal_id
-          ? await tenantService.getSucursal(profile.sucursal_id)
-          : (await tenantService.getSucursales(profile.tenant_id))[0]
-        if (!tenant || !sucursal) throw new Error('Tenant o sucursal no encontrados')
-        return { user: profile, tenant, sucursal }
+        const session = await buildSession(profile)
+        if (!session) throw new Error('Tenant o sucursal no encontrados')
+        return session
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err)
         if (message.toLowerCase().includes('failed to fetch')) {
@@ -76,12 +100,7 @@ export const authRepository = {
         if (!session?.user) return null
         const profile = await authService.getUserProfile(session.user.id)
         if (!profile) return null
-        const tenant = await tenantService.getTenant(profile.tenant_id)
-        const sucursal = profile.sucursal_id
-          ? await tenantService.getSucursal(profile.sucursal_id)
-          : (await tenantService.getSucursales(profile.tenant_id))[0]
-        if (!tenant || !sucursal) return null
-        return { user: profile, tenant, sucursal }
+        return buildSession(profile)
       } catch {
         return null
       }
@@ -89,11 +108,11 @@ export const authRepository = {
     return null
   },
 
-  async signUp(email: string, password: string, fullName: string): Promise<void> {
+  async signUp(email: string, password: string, fullName: string, restaurantName: string): Promise<void> {
     if (!isSupabaseConfigured()) {
       throw new Error('El registro en línea no está disponible en este entorno')
     }
-    await authService.signUp(email, password, fullName)
+    await authService.signUp(email, password, fullName, restaurantName)
   },
 
   async requestPasswordReset(email: string): Promise<void> {

@@ -70,11 +70,14 @@ function ComensalMenuView({ mesa }: { mesa: number }) {
     setLoading(true)
     Promise.all([
       publicMenuService.resolveTableByNumber(mesa),
-      publicMenuService.getMenu(),
-      publicMenuService.getTenantName(),
     ])
-      .then(([tbl, menu, name]) => {
+      .then(async ([tbl]) => {
         setTable(tbl)
+        const tenantId = tbl?.tenant_id
+        const [menu, name] = await Promise.all([
+          publicMenuService.getMenu(tenantId),
+          publicMenuService.getTenantName(tenantId),
+        ])
         setProducts(menu.products)
         setCategories(menu.categories)
         setTenantName(name)

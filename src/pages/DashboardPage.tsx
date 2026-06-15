@@ -13,7 +13,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 export default function DashboardPage() {
   const ctx = useTenantContext()
-  const { user } = useAuthStore()
+  const { user, tenant, sucursal } = useAuthStore()
   const { stats, insights } = useLiveOps()
   const [activeOrders, setActiveOrders] = useState<Awaited<ReturnType<typeof dashboardRepository.getActiveOrdersForTable>>>([])
 
@@ -58,10 +58,16 @@ export default function DashboardPage() {
           <ArrowRight size={20} className="text-brand-600 group-hover:translate-x-1 transition-transform" />
         </div>
       </Link>
-      <div className="flex items-center justify-between">
-        <p className="text-slate-600">
+      <div className="glass-panel rounded-2xl p-5 bg-white border border-command-border">
+        <p className="text-[10px] font-mono text-orange-600 uppercase tracking-[0.2em] mb-1">Centro de mando</p>
+        <h2 className="text-2xl font-black text-slate-800">{tenant?.name || 'Mi Restaurante'}</h2>
+        {sucursal && <p className="text-sm text-slate-500 mt-1">{sucursal.name}</p>}
+        <p className="text-sm text-slate-600 mt-3">
           Operador: <span className="text-slate-800 font-semibold">{user?.full_name}</span>
         </p>
+      </div>
+
+      <div className="flex items-center justify-end">
         <Badge variant="ai" className="gap-1.5">
           <Sparkles size={10} /> IA activa
         </Badge>

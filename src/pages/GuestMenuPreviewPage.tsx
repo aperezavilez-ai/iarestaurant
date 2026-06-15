@@ -24,7 +24,10 @@ export default function GuestMenuPreviewPage() {
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    Promise.all([publicMenuService.getMenu(), publicMenuService.getTenantName()])
+    Promise.all([
+      publicMenuService.getMenu(tenant?.id),
+      publicMenuService.getTenantName(tenant?.id),
+    ])
       .then(([menu, name]) => {
         if (cancelled) return
         setProducts(menu.products.filter((p) => p.is_active))
@@ -37,7 +40,7 @@ export default function GuestMenuPreviewPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [tenant?.id])
 
   const downloadQr = () => {
     const svg = document.getElementById('guest-menu-qr-svg')

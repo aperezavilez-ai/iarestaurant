@@ -38,7 +38,7 @@ export default function LoginPage() {
     try {
       const session = await authRepository.signIn(email, password)
       setSession(session)
-      toast(`Sistema activo — Bienvenido ${session.user.full_name}`, 'success')
+      toast(`Bienvenido a ${session.tenant.name}`, 'success')
       navigate('/app/dashboard')
       if (isSupabaseConfigured()) {
         void bootstrapService.pullFromRemote({

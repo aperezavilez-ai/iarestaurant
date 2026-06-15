@@ -5,12 +5,16 @@ import type { User } from '@/types'
 const appUrl = () => getAppUrl()
 
 export const authService = {
-  async signUp(email: string, password: string, fullName?: string) {
+  async signUp(email: string, password: string, fullName: string, restaurantName?: string) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: fullName },
+        data: {
+          full_name: fullName,
+          restaurant_name: restaurantName?.trim() || '',
+          role: 'admin_restaurant',
+        },
         emailRedirectTo: `${appUrl()}/login`,
       },
     })

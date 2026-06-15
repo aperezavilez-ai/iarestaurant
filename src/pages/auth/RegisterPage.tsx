@@ -22,7 +22,7 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       if (remote) {
-        await authRepository.signUp(email, password, fullName || restaurant)
+        await authRepository.signUp(email, password, fullName, restaurant)
         toast('Cuenta creada — revisa tu correo para activar el acceso', 'success')
       } else {
         await new Promise(r => setTimeout(r, 800))

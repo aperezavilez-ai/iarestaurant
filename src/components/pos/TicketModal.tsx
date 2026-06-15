@@ -1,6 +1,7 @@
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency } from '@/lib/utils'
+import type { BusinessBranding } from '@/lib/businessBranding'
 import type { Order, Payment } from '@/types'
 import { Printer, X } from 'lucide-react'
 
@@ -11,10 +12,16 @@ interface TicketModalProps {
   payment?: Payment | null
   tableLabel?: string
   change?: number
+  business?: BusinessBranding
 }
 
-export function TicketModal({ open, onClose, order, payment, tableLabel, change }: TicketModalProps) {
+export function TicketModal({ open, onClose, order, payment, tableLabel, change, business }: TicketModalProps) {
   if (!order) return null
+
+  const brand = business || {
+    tenantName: 'Mi Restaurante',
+    sucursalName: 'Sucursal Principal',
+  }
 
   const handlePrint = () => {
     window.print()
@@ -24,8 +31,14 @@ export function TicketModal({ open, onClose, order, payment, tableLabel, change 
     <Modal open={open} onClose={onClose} title="Ticket de venta" size="sm">
       <div className="p-5 space-y-4">
         <div id="pos-ticket" className="font-mono text-xs bg-white border border-dashed border-gray-300 rounded-xl p-4 space-y-2">
-          <p className="text-center font-black text-sm">IA·RESTAURANT</p>
-          <p className="text-center text-slate-500">Sucursal Centro</p>
+          <p className="text-center font-black text-sm">{brand.tenantName}</p>
+          <p className="text-center text-slate-500">{brand.sucursalName}</p>
+          {brand.address && <p className="text-center text-slate-400 text-[10px]">{brand.address}</p>}
+          {(brand.rfc || brand.phone) && (
+            <p className="text-center text-slate-400 text-[10px]">
+              {[brand.rfc && `RFC ${brand.rfc}`, brand.phone].filter(Boolean).join(' · ')}
+            </p>
+          )}
           <div className="border-t border-dashed border-gray-300 pt-2 space-y-1">
             <p>Folio: <span className="font-bold text-brand-600">{order.folio}</span></p>
             <p>Mesa: {tableLabel || 'Mostrador'}</p>

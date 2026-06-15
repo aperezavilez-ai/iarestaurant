@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from '@/lib/config'
+import { withTimeout } from '@/lib/async'
 import { localDb } from '@/lib/localDb'
 import { supabase } from '@/lib/supabase'
 import { useOpsDataStore } from '@/store/opsDataStore'
@@ -23,10 +24,19 @@ export const bootstrapService = {
   async pullFromRemote(ctx: TenantContext): Promise<{ ok: boolean; tables: string[] }> {
     if (!isSupabaseConfigured()) return { ok: false, tables: [] }
 
-    const synced: string[] = []
-
     try {
-      const [categories, products, areas, tables, orders, payments, ingredients, movements] = await Promise.all([
+      return await withTimeout(pullFromRemoteInner(ctx), 12_000)
+    } catch {
+      return { ok: false, tables: [] }
+    }
+  },
+}
+
+async function pullFromRemoteInner(ctx: TenantContext): Promise<{ ok: boolean; tables: string[] }> {
+  const synced: string[] = []
+
+  try {
+    const [categories, products, areas, tables, orders, payments, ingredients, movements] = await Promise.all([
         supabase.from('categories').select('*').eq('tenant_id', ctx.tenantId),
         supabase.from('products').select('*').eq('tenant_id', ctx.tenantId),
         supabase.from('table_areas').select('*').eq('sucursal_id', ctx.sucursalId),
@@ -108,5 +118,4 @@ export const bootstrapService = {
     } catch {
       return { ok: false, tables: synced }
     }
-  },
 }

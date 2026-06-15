@@ -1,11 +1,12 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { cn, formatCurrency } from '@/lib/utils'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Badge } from '@/components/ui/Badge'
-import { Users, Clock, RefreshCw, LayoutGrid, Map, Split, UserCheck, ArrowRightLeft, Merge, ShoppingBag, UtensilsCrossed, Loader2 } from 'lucide-react'
+import { RefreshCw, LayoutGrid, Map as MapIcon, Split, UserCheck, ArrowRightLeft, Merge, ShoppingBag, UtensilsCrossed, Loader2, Plus } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 import { useTenantContext } from '@/hooks/useTenantContext'
 import { useOpsSync } from '@/hooks/useOpsSync'
 import { tableRepository } from '@/repositories/tableRepository'
@@ -13,29 +14,32 @@ import { orderRepository } from '@/repositories/orderRepository'
 import { localDb } from '@/lib/localDb'
 import { SEED_STAFF } from '@/data/seed'
 import { toast } from '@/components/ui/Toast'
-import type { RestaurantTable, TableStatus, Order } from '@/types'
+import { TableCard } from '@/components/tables/TableCard'
+import { sameOrders, sameTables } from '@/lib/opsEquality'
+import type { RestaurantTable, TableStatus, Order, TableArea } from '@/types'
 
 const statusLabel: Record<TableStatus, string> = {
   libre: 'Libre', ocupada: 'Ocupada', reservada: 'Reservada', cobro_pendiente: 'Por cobrar',
 }
 
-const STATUS_STYLE: Record<TableStatus, { border: string; bg: string; dot: string; glow?: string }> = {
-  libre: { border: 'border-ops-success/40', bg: 'bg-ops-success/5', dot: 'bg-ops-success' },
-  ocupada: { border: 'border-ops-danger/40', bg: 'bg-ops-danger/5', dot: 'bg-ops-danger', glow: 'shadow-[0_0_16px_rgba(248,113,113,0.2)]' },
-  reservada: { border: 'border-ops-info/40', bg: 'bg-ops-info/5', dot: 'bg-ops-info' },
-  cobro_pendiente: { border: 'border-ops-warning/40', bg: 'bg-ops-warning/5', dot: 'bg-ops-warning' },
-}
+const AREA_COLORS = ['#f59000', '#16213e', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899']
 
 export default function TablesPage() {
   const ctx = useTenantContext()
   const navigate = useNavigate()
   const [tables, setTables] = useState<RestaurantTable[]>([])
+  const [areaList, setAreaList] = useState<TableArea[]>([])
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<TableStatus | 'todas'>('todas')
   const [selectedArea, setSelectedArea] = useState('todas')
   const [view, setView] = useState<'grid' | 'plano'>('grid')
   const [selected, setSelected] = useState<RestaurantTable | null>(null)
+  const [addAreaModal, setAddAreaModal] = useState(false)
+  const [addTableModal, setAddTableModal] = useState(false)
+  const [areaForm, setAreaForm] = useState({ name: '', color: AREA_COLORS[0] })
+  const [tableForm, setTableForm] = useState({ number: '', capacity: '4', area_id: '' })
+  const [saving, setSaving] = useState(false)
   const [splitModal, setSplitModal] = useState(false)
   const [splitParts, setSplitParts] = useState(2)
   const [splitTotal, setSplitTotal] = useState(0)
@@ -47,30 +51,104 @@ export default function TablesPage() {
     if (!ctx) return
     await localDb.ensureLocalSeed()
     const localTables = await localDb.getTables(ctx.tenantId, ctx.sucursalId)
+    const localAreas = await localDb.getAreas(ctx.tenantId, ctx.sucursalId)
     const localOrders = await localDb.getActiveOrders(ctx.tenantId, ctx.sucursalId)
     if (localTables.length) {
-      setTables(localTables)
+      setTables(prev => sameTables(prev, localTables) ? prev : localTables)
       setLoading(false)
     }
-    if (localOrders.length) setOrders(localOrders)
+    if (localAreas.length) setAreaList(localAreas)
+    if (localOrders.length) setOrders(prev => sameOrders(prev, localOrders) ? prev : localOrders)
 
-    const [t, o] = await Promise.all([
+    const [t, o, a] = await Promise.all([
       tableRepository.getTables(ctx),
       orderRepository.getActiveOrders(ctx),
+      tableRepository.getAreas(ctx),
     ])
-    setTables(t)
-    setOrders(o)
+    setTables(prev => sameTables(prev, t) ? prev : t)
+    setOrders(prev => sameOrders(prev, o) ? prev : o)
+    setAreaList(a)
     setLoading(false)
   }, [ctx])
 
   useOpsSync(load, 4000)
   useEffect(() => { load() }, [load])
 
-  const areas = [...new Set(tables.map(t => t.area?.name))].filter(Boolean)
   const filtered = tables.filter(t =>
     (filter === 'todas' || t.status === filter) &&
     (selectedArea === 'todas' || t.area?.name === selectedArea)
   )
+
+  const nextTableNumber = useMemo(() => {
+    if (!tables.length) return 1
+    return Math.max(...tables.map(t => t.number)) + 1
+  }, [tables])
+
+  const openAddArea = () => {
+    setAreaForm({ name: '', color: AREA_COLORS[areaList.length % AREA_COLORS.length] })
+    setAddAreaModal(true)
+  }
+
+  const openAddTable = () => {
+    if (!areaList.length) {
+      toast('Primero crea un área para ubicar la mesa', 'error')
+      setAddAreaModal(true)
+      return
+    }
+    setTableForm({
+      number: String(nextTableNumber),
+      capacity: '4',
+      area_id: areaList[0].id,
+    })
+    setAddTableModal(true)
+  }
+
+  const handleCreateArea = async () => {
+    if (!ctx || !areaForm.name.trim()) return
+    setSaving(true)
+    try {
+      const area = await tableRepository.createArea(ctx, {
+        name: areaForm.name,
+        color: areaForm.color,
+      })
+      toast(`Área "${area.name}" creada`, 'success')
+      setAddAreaModal(false)
+      await load()
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'No se pudo crear el área', 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleCreateTable = async () => {
+    if (!ctx || !tableForm.area_id || !tableForm.number) return
+    const number = Number(tableForm.number)
+    const capacity = Number(tableForm.capacity)
+    if (!Number.isFinite(number) || number < 1) {
+      toast('Número de mesa inválido', 'error')
+      return
+    }
+    if (!Number.isFinite(capacity) || capacity < 1) {
+      toast('Capacidad inválida', 'error')
+      return
+    }
+    setSaving(true)
+    try {
+      const table = await tableRepository.createTable(ctx, {
+        number,
+        capacity,
+        area_id: tableForm.area_id,
+      })
+      toast(`Mesa ${table.number} agregada`, 'success')
+      setAddTableModal(false)
+      await load()
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'No se pudo crear la mesa', 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const counts = {
     libre: tables.filter(t => t.status === 'libre').length,
@@ -81,15 +159,31 @@ export default function TablesPage() {
 
   const waiters = SEED_STAFF.filter(u => u.role === 'mesero')
 
-  const getOrder = (tableId: string) => orders.find(o => o.table_id === tableId)
-  const getWaiterName = (id?: string) => SEED_STAFF.find(u => u.id === id)?.full_name
+  const getOrder = useCallback((tableId: string) => orders.find(o => o.table_id === tableId), [orders])
+  const getWaiterName = useCallback((id?: string) => SEED_STAFF.find(u => u.id === id)?.full_name, [])
 
-  const cycleStatus = async (table: RestaurantTable) => {
+  const handleSelectTable = useCallback((table: RestaurantTable) => setSelected(table), [])
+
+  const cycleStatus = useCallback(async (table: RestaurantTable) => {
     if (!ctx) return
-    const order: TableStatus[] = ['libre', 'ocupada', 'cobro_pendiente', 'reservada']
-    await tableRepository.updateStatus(ctx, table.id, order[(order.indexOf(table.status) + 1) % order.length])
+    const statusCycle: TableStatus[] = ['libre', 'ocupada', 'cobro_pendiente', 'reservada']
+    await tableRepository.updateStatus(ctx, table.id, statusCycle[(statusCycle.indexOf(table.status) + 1) % statusCycle.length])
     await load()
-  }
+  }, [ctx, load])
+
+  const ordersByTable = useMemo(() => {
+    const map = new Map<string, Order>()
+    for (const order of orders) {
+      if (order.table_id) map.set(order.table_id, order)
+    }
+    return map
+  }, [orders])
+
+  const waiterNames = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const user of SEED_STAFF) map.set(user.id, user.full_name)
+    return map
+  }, [])
 
   const assignWaiter = async (waiterId: string) => {
     if (!selected) return
@@ -161,42 +255,10 @@ export default function TablesPage() {
     }
   }
 
-  const TableCard = ({ table }: { table: RestaurantTable }) => {
-    const style = STATUS_STYLE[table.status]
-    const mins = table.opened_at ? Math.floor((Date.now() - new Date(table.opened_at).getTime()) / 60000) : 0
-    const order = getOrder(table.id)
-    const waiter = getWaiterName(table.assigned_waiter_id)
-
-    return (
-      <button
-        onClick={() => setSelected(table)}
-        onDoubleClick={() => cycleStatus(table)}
-        className={cn('rounded-2xl border-2 p-4 text-center transition-all hover:scale-105 min-h-[100px]', style.border, style.bg, style.glow)}
-      >
-        <div className="flex items-center justify-between mb-2">
-          <span className={cn('w-2.5 h-2.5 rounded-full', style.dot, table.status === 'ocupada' && 'animate-pulse-live')} />
-          <span className="text-[9px] font-mono text-slate-600">{table.area?.name?.slice(0, 3)}</span>
-        </div>
-        <p className="text-3xl font-black text-slate-800">{table.number}</p>
-        <div className="flex items-center justify-center gap-1 mt-1 text-slate-500">
-          <Users size={10} /><span className="text-[10px] font-mono">{table.capacity}</span>
-        </div>
-        <p className="text-[10px] font-mono font-bold text-slate-400 mt-2 uppercase">{statusLabel[table.status]}</p>
-        {waiter && <p className="text-[9px] text-brand-600 truncate mt-0.5">{waiter.split(' ')[0]}</p>}
-        {order && <p className="text-[9px] font-mono text-slate-500 mt-0.5">{formatCurrency(order.total)}</p>}
-        {table.status === 'ocupada' && mins > 0 && (
-          <p className="text-[10px] text-ops-danger font-mono flex items-center justify-center gap-0.5 mt-1">
-            <Clock size={9} />{mins}m
-          </p>
-        )}
-      </button>
-    )
-  }
-
   const freeTables = tables.filter(t => t.status === 'libre' && t.id !== selected?.id)
 
   return (
-    <div className="space-y-6 animate-fadeUp">
+    <div className="space-y-6">
       <div className="grid grid-cols-4 gap-3">
         {[
           { label: 'Libres', count: counts.libre, color: 'text-ops-success' },
@@ -226,13 +288,19 @@ export default function TablesPage() {
             <div className="flex gap-2">
               <div className="flex rounded-xl border border-command-border overflow-hidden">
                 <button onClick={() => setView('grid')} className={cn('px-3 py-2 text-xs', view === 'grid' ? 'bg-brand-100 text-brand-700' : 'text-slate-500')}><LayoutGrid size={14} /></button>
-                <button onClick={() => setView('plano')} className={cn('px-3 py-2 text-xs', view === 'plano' ? 'bg-brand-100 text-brand-700' : 'text-slate-500')}><Map size={14} /></button>
+                <button onClick={() => setView('plano')} className={cn('px-3 py-2 text-xs', view === 'plano' ? 'bg-brand-100 text-brand-700' : 'text-slate-500')}><MapIcon size={14} /></button>
               </div>
               <select value={selectedArea} onChange={e => setSelectedArea(e.target.value)}
                 className="text-xs bg-white border border-command-border rounded-xl px-3 py-2 text-slate-600 focus:outline-none">
                 <option value="todas">Todas las áreas</option>
-                {areas.map(a => <option key={a} value={a}>{a}</option>)}
+                {areaList.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
               </select>
+              <Button variant="outline" size="sm" onClick={openAddArea}>
+                <Plus size={14} /> Área
+              </Button>
+              <Button size="sm" onClick={openAddTable}>
+                <Plus size={14} /> Mesa
+              </Button>
               <Button variant="ghost" size="sm" onClick={load}><RefreshCw size={14} /> Sync</Button>
             </div>
           </div>
@@ -244,21 +312,38 @@ export default function TablesPage() {
             </div>
           ) : view === 'grid' ? (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-              {filtered.map(table => <TableCard key={table.id} table={table} />)}
+              {filtered.map(table => (
+                <TableCard
+                  key={table.id}
+                  table={table}
+                  order={ordersByTable.get(table.id)}
+                  waiterName={table.assigned_waiter_id ? waiterNames.get(table.assigned_waiter_id) : undefined}
+                  onSelect={handleSelectTable}
+                  onCycleStatus={cycleStatus}
+                />
+              ))}
             </div>
           ) : (
             <div className="space-y-6">
-              {areas.map(area => {
-                const areaTables = filtered.filter(t => t.area?.name === area)
+              {areaList
+                .filter(area => selectedArea === 'todas' || area.name === selectedArea)
+                .map(area => {
+                const areaTables = filtered.filter(t => t.area_id === area.id)
                 if (!areaTables.length) return null
                 return (
-                  <div key={area}>
-                    <p className="text-xs font-mono text-orange-600 uppercase tracking-widest mb-3">{area}</p>
+                  <div key={area.id}>
+                    <p className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: area.color }}>{area.name}</p>
                     <div className="relative bg-command-elevated rounded-2xl p-8 min-h-[200px] border-2 border-dashed border-command-border">
                       <div className="flex flex-wrap gap-4 justify-center">
                         {areaTables.map(table => (
                           <div key={table.id} className="w-24">
-                            <TableCard table={table} />
+                            <TableCard
+                              table={table}
+                              order={ordersByTable.get(table.id)}
+                              waiterName={table.assigned_waiter_id ? waiterNames.get(table.assigned_waiter_id) : undefined}
+                              onSelect={handleSelectTable}
+                              onCycleStatus={cycleStatus}
+                            />
                           </div>
                         ))}
                       </div>
@@ -381,6 +466,73 @@ export default function TablesPage() {
             ))}
           </div>
           <Button className="w-full" disabled={!targetTableId} onClick={confirmMerge}>Confirmar unión</Button>
+        </div>
+      </Modal>
+
+      <Modal open={addAreaModal} onClose={() => setAddAreaModal(false)} title="Nueva área" size="sm">
+        <div className="p-5 space-y-4">
+          <Input
+            label="Nombre del área"
+            placeholder="Ej. Terraza, Barra, Salón VIP"
+            value={areaForm.name}
+            onChange={e => setAreaForm(f => ({ ...f, name: e.target.value }))}
+          />
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-slate-700">Color</p>
+            <div className="flex gap-2 flex-wrap">
+              {AREA_COLORS.map(color => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => setAreaForm(f => ({ ...f, color }))}
+                  className={cn(
+                    'w-9 h-9 rounded-xl border-2 transition-transform hover:scale-105',
+                    areaForm.color === color ? 'border-slate-800 scale-105' : 'border-transparent',
+                  )}
+                  style={{ backgroundColor: color }}
+                  aria-label={`Color ${color}`}
+                />
+              ))}
+            </div>
+          </div>
+          <Button className="w-full" onClick={handleCreateArea} disabled={saving || !areaForm.name.trim()}>
+            {saving ? 'Guardando…' : 'Crear área'}
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal open={addTableModal} onClose={() => setAddTableModal(false)} title="Nueva mesa" size="sm">
+        <div className="p-5 space-y-4">
+          <Input
+            label="Número de mesa"
+            type="number"
+            min={1}
+            value={tableForm.number}
+            onChange={e => setTableForm(f => ({ ...f, number: e.target.value }))}
+          />
+          <Input
+            label="Capacidad (personas)"
+            type="number"
+            min={1}
+            value={tableForm.capacity}
+            onChange={e => setTableForm(f => ({ ...f, capacity: e.target.value }))}
+          />
+          <div className="space-y-1.5">
+            <label htmlFor="table-area" className="text-sm font-medium text-slate-700">Área</label>
+            <select
+              id="table-area"
+              value={tableForm.area_id}
+              onChange={e => setTableForm(f => ({ ...f, area_id: e.target.value }))}
+              className="w-full h-11 rounded-xl px-3 text-sm bg-white border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+            >
+              {areaList.map(area => (
+                <option key={area.id} value={area.id}>{area.name}</option>
+              ))}
+            </select>
+          </div>
+          <Button className="w-full" onClick={handleCreateTable} disabled={saving || !tableForm.number || !tableForm.area_id}>
+            {saving ? 'Guardando…' : 'Crear mesa'}
+          </Button>
         </div>
       </Modal>
     </div>

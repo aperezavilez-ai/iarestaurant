@@ -60,8 +60,8 @@ export default {
       },
       keyframes: {
         'pulse-live': {
-          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
-          '50%': { opacity: '0.5', transform: 'scale(1.15)' },
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.45' },
         },
         fadeUp: {
           from: { opacity: '0', transform: 'translateY(8px)' },

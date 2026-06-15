@@ -12,7 +12,8 @@
     "supabase:staff": "node scripts/seed-staff.mjs",
     "supabase:link": "npx supabase link --project-ref pssycnwgolxiwoyzdsdg",
     "configure:domain": "node scripts/configure-domain.mjs",
-    "ensure:admin": "node scripts/ensure-admin.mjs"
+    "ensure:admin": "node scripts/ensure-admin.mjs",
+    "recreate:admin": "node scripts/recreate-admin.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

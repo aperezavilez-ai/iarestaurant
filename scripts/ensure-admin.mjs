@@ -10,9 +10,9 @@ loadEnv()
 const url = process.env.VITE_SUPABASE_URL
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY
 const ADMIN = {
-  email: 'alfonsoavilery@icloud.com',
-  password: 'Calurore1028@',
-  full_name: 'Alfonso Avilery',
+  email: 'admin@iarestaurant.mx',
+  password: 'AdminIAR2026!',
+  full_name: 'Alfonso Admin',
   role: 'admin_restaurant',
   tenant_id: '00000000-0000-0000-0000-000000000001',
   sucursal_id: '00000000-0000-0000-0000-000000000002',

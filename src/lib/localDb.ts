@@ -170,6 +170,13 @@ export const localDb = {
     await db.put('table_areas', area)
   },
 
+  async getAreas(tenantId: string, sucursalId: string) {
+    const all = await getAll('table_areas')
+    return all
+      .filter((a) => a.tenant_id === tenantId && a.sucursal_id === sucursalId && a.is_active)
+      .sort((a, b) => a.sort_order - b.sort_order)
+  },
+
   async getTables(tenantId: string, sucursalId: string) {
     const all = await getAll('tables')
     const areas = await getAll('table_areas')

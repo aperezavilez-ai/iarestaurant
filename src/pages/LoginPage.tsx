@@ -156,7 +156,7 @@ export default function LoginPage() {
                 ))}
               </div>
               <p className="text-[10px] text-slate-400 mt-2 text-center">
-                Admin: <span className="font-mono text-slate-600">alfonsoavilery@icloud.com</span>
+                Admin: <span className="font-mono text-slate-600">admin@iarestaurant.mx</span>
               </p>
             </div>
           </div>

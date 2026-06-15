@@ -5,12 +5,16 @@ import { localDb } from '@/lib/localDb'
 import { DEMO_CREDENTIALS, SEED_STAFF, SEED_TENANT, SEED_SUCURSAL } from '@/data/seed'
 import type { User, Tenant, Sucursal } from '@/types'
 
-const ADMIN_EMAIL = 'alfonsoavilery@icloud.com'
+const ADMIN_EMAIL = 'admin@iarestaurant.mx'
+const RETIRED_ADMIN_EMAILS = ['alfonsoavilery@icloud.com', 'alfonsoaviler@icloud.com']
 
 function normalizeLoginError(email: string, err: unknown): Error {
   const normalized = email.trim().toLowerCase()
   if (normalized === 'alfonsoaviler@icloud.com') {
-    return new Error(`Correo incorrecto. Usa: ${ADMIN_EMAIL} (lleva "y" en avilery)`)
+    return new Error(`Correo incorrecto. Usa: ${ADMIN_EMAIL}`)
+  }
+  if (RETIRED_ADMIN_EMAILS.includes(normalized)) {
+    return new Error(`Cuenta desactivada. Usa el admin actual: ${ADMIN_EMAIL}`)
   }
   if (err instanceof Error) {
     const msg = err.message

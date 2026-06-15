@@ -2,7 +2,8 @@ import { tableService } from '@/services/tableService'
 import { localDb } from '@/lib/localDb'
 import { opsBroadcast } from '@/services/opsBroadcast'
 import { withHybridList } from './base'
-import type { RestaurantTable, Order } from '@/types'
+import { isSupabaseConfigured } from '@/lib/config'
+import type { RestaurantTable, Order, TableArea } from '@/types'
 import type { TenantContext } from '@/types/context'
 
 async function getTableById(ctx: TenantContext, tableId: string) {
@@ -11,6 +12,15 @@ async function getTableById(ctx: TenantContext, tableId: string) {
 }
 
 export const tableRepository = {
+  async getAreas(ctx: TenantContext): Promise<TableArea[]> {
+    const areas = await withHybridList(
+      () => localDb.getAreas(ctx.tenantId, ctx.sucursalId),
+      () => tableService.getAreas(ctx.tenantId, ctx.sucursalId),
+    )
+    void Promise.all(areas.map((a) => localDb.saveArea(a)))
+    return areas
+  },
+
   async getTables(ctx: TenantContext): Promise<RestaurantTable[]> {
     const tables = await withHybridList(
       () => localDb.getTables(ctx.tenantId, ctx.sucursalId),
@@ -144,5 +154,66 @@ export const tableRepository = {
       opened_at: undefined,
     })
     opsBroadcast.notify()
+  },
+
+  async createArea(
+    ctx: TenantContext,
+    data: { name: string; color?: string },
+  ): Promise<TableArea> {
+    const existing = await localDb.getAreas(ctx.tenantId, ctx.sucursalId)
+    const area: TableArea = {
+      id: crypto.randomUUID(),
+      tenant_id: ctx.tenantId,
+      sucursal_id: ctx.sucursalId,
+      name: data.name.trim(),
+      color: data.color || '#f59000',
+      sort_order: existing.length ? Math.max(...existing.map((a) => a.sort_order)) + 1 : 1,
+      is_active: true,
+    }
+    await localDb.saveArea(area)
+    opsBroadcast.notify()
+    if (isSupabaseConfigured()) {
+      try {
+        await tableService.createArea(area)
+      } catch {
+        await localDb.enqueueSync({ table: 'table_areas', operation: 'insert', payload: area as never })
+      }
+    }
+    return area
+  },
+
+  async createTable(
+    ctx: TenantContext,
+    data: { number: number; capacity: number; area_id: string },
+  ): Promise<RestaurantTable> {
+    const areas = await localDb.getAreas(ctx.tenantId, ctx.sucursalId)
+    const area = areas.find((a) => a.id === data.area_id)
+    if (!area) throw new Error('Área no encontrada')
+
+    const tables = await localDb.getTables(ctx.tenantId, ctx.sucursalId)
+    if (tables.some((t) => t.number === data.number)) {
+      throw new Error(`Ya existe la mesa ${data.number}`)
+    }
+
+    const table: RestaurantTable = {
+      id: crypto.randomUUID(),
+      tenant_id: ctx.tenantId,
+      sucursal_id: ctx.sucursalId,
+      area_id: data.area_id,
+      number: data.number,
+      capacity: data.capacity,
+      status: 'libre',
+      area,
+    }
+    await localDb.updateTable(table)
+    opsBroadcast.notify()
+    if (isSupabaseConfigured()) {
+      try {
+        await tableService.createTable(table)
+      } catch {
+        await localDb.enqueueSync({ table: 'tables', operation: 'insert', payload: table as never })
+      }
+    }
+    return table
   },
 }

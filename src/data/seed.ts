@@ -57,17 +57,18 @@ export const SEED_SUCURSAL: Sucursal = {
 }
 
 export const SEED_USERS: Omit<User, 'id'>[] = [
-  { tenant_id: T, email: 'alfonsoavilery@icloud.com', full_name: 'Alfonso', role: 'admin_restaurant', sucursal_id: S, is_active: true, created_at: new Date().toISOString() },
+  { tenant_id: T, email: 'admin@iarestaurant.mx', full_name: 'Alfonso Admin', role: 'admin_restaurant', sucursal_id: S, is_active: true, created_at: new Date().toISOString() },
+  { tenant_id: T, email: 'alfonsoavilery@icloud.com', full_name: 'Alfonso', role: 'admin_restaurant', sucursal_id: S, is_active: false, created_at: new Date().toISOString() },
   { tenant_id: T, email: 'cajero@iarestaurant.com', full_name: 'Cajero Demo', role: 'cajero', sucursal_id: S, is_active: true, created_at: new Date().toISOString() },
   { tenant_id: T, email: 'mesero@iarestaurant.com', full_name: 'Mesero Demo', role: 'mesero', sucursal_id: S, is_active: true, created_at: new Date().toISOString() },
   { tenant_id: T, email: 'cocina@iarestaurant.com', full_name: 'Cocina Demo', role: 'cocina', sucursal_id: S, is_active: true, created_at: new Date().toISOString() },
 ]
 
 export const DEMO_CREDENTIALS = [
-  { email: 'alfonsoavilery@icloud.com', password: 'Calurore1028@', userIndex: 0 },
-  { email: 'cajero@iarestaurant.com', password: 'demo123', userIndex: 1 },
-  { email: 'mesero@iarestaurant.com', password: 'demo123', userIndex: 2 },
-  { email: 'cocina@iarestaurant.com', password: 'demo123', userIndex: 3 },
+  { email: 'admin@iarestaurant.mx', password: 'AdminIAR2026!', userIndex: 0 },
+  { email: 'cajero@iarestaurant.com', password: 'demo123', userIndex: 2 },
+  { email: 'mesero@iarestaurant.com', password: 'demo123', userIndex: 3 },
+  { email: 'cocina@iarestaurant.com', password: 'demo123', userIndex: 4 },
 ]
 
 export const SEED_CATEGORIES: Category[] = [

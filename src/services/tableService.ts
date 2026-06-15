@@ -21,4 +21,28 @@ export const tableService = {
       opened_at: status === 'ocupada' ? new Date().toISOString() : null,
     }).eq('id', tableId)
   },
+  async createArea(area: TableArea): Promise<void> {
+    const { error } = await supabase.from('table_areas').insert({
+      id: area.id,
+      tenant_id: area.tenant_id,
+      sucursal_id: area.sucursal_id,
+      name: area.name,
+      color: area.color,
+      sort_order: area.sort_order,
+      is_active: area.is_active,
+    })
+    if (error) throw error
+  },
+  async createTable(table: RestaurantTable): Promise<void> {
+    const { error } = await supabase.from('tables').insert({
+      id: table.id,
+      tenant_id: table.tenant_id,
+      sucursal_id: table.sucursal_id,
+      area_id: table.area_id,
+      number: table.number,
+      capacity: table.capacity,
+      status: table.status,
+    })
+    if (error) throw error
+  },
 }

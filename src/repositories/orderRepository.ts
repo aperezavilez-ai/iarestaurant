@@ -12,6 +12,25 @@ import { TAX_RATE } from '@/data/constants'
 import type { Order, OrderItem, Payment, PaymentMethod, RestaurantTable } from '@/types'
 import type { TenantContext } from '@/types/context'
 
+async function resolveTableCustomer(ctx: TenantContext, tableId?: string) {
+  if (!tableId) return { customerId: undefined as string | undefined, customerName: undefined as string | undefined }
+  const tables = await localDb.getTables(ctx.tenantId, ctx.sucursalId)
+  const table = tables.find(t => t.id === tableId)
+  if (!table?.customer_id) return { customerId: undefined, customerName: undefined }
+  return { customerId: table.customer_id, customerName: table.customer_name }
+}
+
+function freeTable(table: RestaurantTable): RestaurantTable {
+  return {
+    ...table,
+    status: 'libre',
+    current_order_id: undefined,
+    opened_at: undefined,
+    customer_id: undefined,
+    customer_name: undefined,
+  }
+}
+
 async function pushOrderRemote(
   order: Order,
   items: OrderItem[],
@@ -81,6 +100,7 @@ export const orderRepository = {
       mixedCard?: number
       promoCode?: string
       customerId?: string
+      customerName?: string
     }
   ): Promise<{ order: Order; payment: Payment; payments?: Payment[] }> {
     const subtotal = lines.reduce((s, l) => s + l.unit_price * l.quantity, 0)
@@ -92,6 +112,9 @@ export const orderRepository = {
     const folio = generateFolio()
     const orderId = crypto.randomUUID()
     const now = new Date().toISOString()
+    const tableCustomer = await resolveTableCustomer(ctx, options?.tableId)
+    const customerId = options?.customerId || tableCustomer.customerId
+    const customerName = options?.customerName || tableCustomer.customerName
 
     const order: Order = {
       id: orderId,
@@ -101,6 +124,8 @@ export const orderRepository = {
       folio,
       status: 'cobrada',
       cashier_id: ctx.userId,
+      customer_id: customerId,
+      customer_name: customerName,
       subtotal,
       tax,
       discount,
@@ -165,14 +190,14 @@ export const orderRepository = {
     await localDb.saveOrder({ ...order, items }, items)
     for (const p of payments) await localDb.savePayment(p)
     await inventoryRepository.deductForOrder(ctx, lines, folio)
-    if (options?.customerId) await crmRepository.recordSale(ctx, options.customerId, total)
+    if (customerId) await crmRepository.recordSale(ctx, customerId, total)
     opsBroadcast.notify()
 
     if (options?.tableId) {
       const tables = await localDb.getTables(ctx.tenantId, ctx.sucursalId)
       const table = tables.find(t => t.id === options.tableId)
       if (table) {
-        const freed: RestaurantTable = { ...table, status: 'libre', current_order_id: undefined, opened_at: undefined }
+        const freed = freeTable(table)
         await localDb.updateTable(freed)
         await pushOrderRemote(order, items, payments, freed)
       } else {
@@ -206,11 +231,13 @@ export const orderRepository = {
     const discount = Math.min(found.subtotal, options?.discount ?? found.discount ?? 0)
     const total = found.total
     const now = new Date().toISOString()
+    const effectiveCustomerId = options?.customerId || found.customer_id
 
     const order: Order = {
       ...found,
       status: 'cobrada',
       cashier_id: ctx.userId,
+      customer_id: effectiveCustomerId || found.customer_id,
       discount,
       total,
       updated_at: now,
@@ -265,12 +292,7 @@ export const orderRepository = {
       const tables = await localDb.getTables(ctx.tenantId, ctx.sucursalId)
       const table = tables.find(t => t.id === order.table_id)
       if (table) {
-        tablePatch = {
-          ...table,
-          status: 'libre',
-          current_order_id: undefined,
-          opened_at: undefined,
-        }
+        tablePatch = freeTable(table)
         await localDb.updateTable(tablePatch)
         opsBroadcast.notify()
       }
@@ -293,18 +315,22 @@ export const orderRepository = {
 
     if (options?.customerId) {
       await crmRepository.recordSale(ctx, options.customerId, total)
+    } else if (found.customer_id) {
+      await crmRepository.recordSale(ctx, found.customer_id, total)
     }
 
     return { order: { ...order, items }, payment, payments }
   },
 
-  async sendToKitchen(ctx: TenantContext, lines: CartLine[], tableId?: string): Promise<Order> {
+  async sendToKitchen(ctx: TenantContext, lines: CartLine[], tableId?: string, customerId?: string): Promise<Order> {
     const subtotal = lines.reduce((s, l) => s + l.unit_price * l.quantity, 0)
     const taxRate = ctx.taxRate ?? TAX_RATE
     const tax = subtotal * taxRate
     const total = subtotal + tax
     const orderId = crypto.randomUUID()
     const now = new Date().toISOString()
+    const tableCustomer = await resolveTableCustomer(ctx, tableId)
+    const resolvedCustomerId = customerId || tableCustomer.customerId
 
     const order: Order = {
       id: orderId,
@@ -314,6 +340,8 @@ export const orderRepository = {
       folio: generateFolio(),
       status: 'en_preparacion',
       waiter_id: ctx.userId,
+      customer_id: resolvedCustomerId,
+      customer_name: resolvedCustomerId ? tableCustomer.customerName : undefined,
       subtotal,
       tax,
       discount: 0,

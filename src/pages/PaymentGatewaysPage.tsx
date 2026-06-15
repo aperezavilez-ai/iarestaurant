@@ -1,25 +1,45 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { CreditCard, Info, Shield, ArrowLeft } from 'lucide-react'
+import { CreditCard, Info, Shield, ArrowLeft, Key, Save } from 'lucide-react'
 import { PaymentGatewayCard } from '@/components/payments/PaymentGatewayCard'
 import { PAYMENT_GATEWAYS, SAAS_BILLING_NOTE } from '@/data/paymentGateways'
 import { usePaymentGatewayStore } from '@/store/paymentGatewayStore'
 import { useAuthStore } from '@/store/authStore'
+import { useTenantContext } from '@/hooks/useTenantContext'
+import { tenantRepository } from '@/repositories/tenantRepository'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
 import { toast } from '@/components/ui/Toast'
 import type { PaymentGatewayId } from '@/data/paymentGateways'
+import type { PaymentConfig } from '@/types'
 
 export default function PaymentGatewaysPage() {
   const [searchParams] = useSearchParams()
   const highlightGw = searchParams.get('gw')
+  const ctx = useTenantContext()
   const tenant = useAuthStore((s) => s.tenant)
   const tenantId = tenant?.id || ''
   const preferred = usePaymentGatewayStore((s) => s.getPreferred(tenantId))
   const setPreferred = usePaymentGatewayStore((s) => s.setPreferred)
 
+  const [config, setConfig] = useState<PaymentConfig>({})
+  const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!ctx) return
+    tenantRepository.getPaymentConfig(ctx).then((c) => {
+      setConfig(c)
+      if (c.gateway) setPreferred(tenantId, c.gateway)
+      setLoading(false)
+    })
+  }, [ctx, tenantId, setPreferred])
+
   const handleSelect = (id: PaymentGatewayId) => {
     if (!tenantId) return
     const next = preferred === id ? null : id
     setPreferred(tenantId, next)
+    setConfig((c) => ({ ...c, gateway: next || undefined }))
     const name = PAYMENT_GATEWAYS.find((g) => g.id === id)?.name
     toast(
       next ? `${name} marcado como pasarela para cobros en restaurante` : 'Preferencia de pasarela quitada',
@@ -27,11 +47,29 @@ export default function PaymentGatewaysPage() {
     )
   }
 
+  const handleSaveCredentials = async () => {
+    if (!ctx || !config.gateway) {
+      toast('Selecciona una pasarela principal primero', 'error')
+      return
+    }
+    setSaving(true)
+    try {
+      await tenantRepository.updatePaymentConfig(ctx, config)
+      toast('Credenciales guardadas — ya puedes generar links desde POS', 'success')
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'No se pudieron guardar las credenciales', 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   useEffect(() => {
     if (!highlightGw) return
     const el = document.getElementById(`gateway-${highlightGw}`)
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [highlightGw])
+
+  const activeGateway = PAYMENT_GATEWAYS.find((g) => g.id === (config.gateway || preferred))
 
   return (
     <div className="max-w-5xl space-y-6">
@@ -78,15 +116,75 @@ export default function PaymentGatewaysPage() {
           <div key={gw.id} id={`gateway-${gw.id}`} className={highlightGw === gw.id ? 'ring-2 ring-brand-400 rounded-2xl' : ''}>
             <PaymentGatewayCard
               gateway={gw}
-              selected={preferred === gw.id}
+              selected={(config.gateway || preferred) === gw.id}
               onSelect={() => handleSelect(gw.id)}
             />
           </div>
         ))}
       </div>
 
+      {activeGateway && !loading && (
+        <div className="rounded-2xl border border-command-border bg-white p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Key size={18} className="text-brand-600" />
+            <div>
+              <p className="font-bold text-slate-800">Credenciales de {activeGateway.name}</p>
+              <p className="text-xs text-slate-500">Se guardan en tu organización. El cobro va directo a tu cuenta del proveedor.</p>
+            </div>
+          </div>
+
+          {config.gateway === 'mercadopago' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Input
+                label="Public Key"
+                placeholder="APP_USR-..."
+                value={config.public_key || ''}
+                onChange={e => setConfig(c => ({ ...c, public_key: e.target.value }))}
+              />
+              <Input
+                label="Access Token"
+                type="password"
+                placeholder="APP_USR-..."
+                value={config.access_token || ''}
+                onChange={e => setConfig(c => ({ ...c, access_token: e.target.value }))}
+              />
+            </div>
+          )}
+
+          {config.gateway === 'stripe' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Input
+                label="Publishable Key"
+                placeholder="pk_live_..."
+                value={config.public_key || ''}
+                onChange={e => setConfig(c => ({ ...c, public_key: e.target.value }))}
+              />
+              <Input
+                label="Secret Key"
+                type="password"
+                placeholder="sk_live_..."
+                value={config.secret_key || ''}
+                onChange={e => setConfig(c => ({ ...c, secret_key: e.target.value }))}
+              />
+            </div>
+          )}
+
+          {config.gateway === 'clip' && (
+            <p className="text-sm text-slate-600 bg-slate-50 rounded-xl p-4 border border-slate-100">
+              Clip se usa con terminal o link manual desde tu app Clip. La generación automática de links estará disponible pronto.
+            </p>
+          )}
+
+          {(config.gateway === 'mercadopago' || config.gateway === 'stripe') && (
+            <Button onClick={handleSaveCredentials} loading={saving} className="w-full sm:w-auto">
+              <Save size={14} /> Guardar credenciales
+            </Button>
+          )}
+        </div>
+      )}
+
       <p className="text-center text-[10px] text-slate-400 font-mono pb-4">
-        Próximamente: conectar API keys de tu cuenta para links de pago desde POS y menú comensal
+        Con credenciales guardadas, en POS → Tarjeta puedes generar un link de pago para el comensal
       </p>
     </div>
   )

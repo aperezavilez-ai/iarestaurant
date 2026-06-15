@@ -38,6 +38,14 @@ export const orderService = {
   async updateOrderStatus(orderId: string, status: Order['status']): Promise<void> {
     await supabase.from('orders').update({ status, updated_at: new Date().toISOString() }).eq('id', orderId)
   },
+
+  async updateOrderCustomer(orderId: string, customerId: string | null, customerName?: string | null): Promise<void> {
+    await supabase.from('orders').update({
+      customer_id: customerId,
+      customer_name: customerName,
+      updated_at: new Date().toISOString(),
+    }).eq('id', orderId)
+  },
   async updateItemStatus(itemId: string, status: OrderItem['status']): Promise<void> {
     await supabase.from('order_items').update({ status }).eq('id', itemId)
   },

@@ -129,6 +129,8 @@ export const usePOSStore = create<POSState>()(
           promoCode: null,
           existingOrderId: order.id,
           existingOrderFolio: order.folio,
+          customerId: order.customer_id ?? null,
+          customerName: order.customer_name ?? null,
         })
       },
 

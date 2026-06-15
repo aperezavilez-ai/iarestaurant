@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { Plus, Search, Edit, Trash2, ImageIcon } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, ImageIcon, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
@@ -21,6 +21,7 @@ export default function CatalogPage() {
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [editCategory, setEditCategory] = useState<Category | null>(null)
   const [categoryName, setCategoryName] = useState('')
   const [categoryColor, setCategoryColor] = useState('#f59000')
   const [categoryKitchen, setCategoryKitchen] = useState('barra_caliente')
@@ -128,9 +129,18 @@ export default function CatalogPage() {
   const CATEGORY_COLORS = ['#f59000', '#16213e', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#a855f7']
 
   const openNewCategory = () => {
+    setEditCategory(null)
     setCategoryName('')
     setCategoryColor(CATEGORY_COLORS[categories.length % CATEGORY_COLORS.length])
     setCategoryKitchen('barra_caliente')
+    setShowCategoryModal(true)
+  }
+
+  const openEditCategory = (c: Category) => {
+    setEditCategory(c)
+    setCategoryName(c.name)
+    setCategoryColor(c.color)
+    setCategoryKitchen(c.kitchen_center || 'barra_caliente')
     setShowCategoryModal(true)
   }
 
@@ -138,17 +148,26 @@ export default function CatalogPage() {
     if (!ctx || !categoryName.trim()) return
     setSavingCategory(true)
     try {
-      const created = await catalogRepository.createCategory(ctx, {
-        name: categoryName,
-        color: categoryColor,
-        kitchen_center: categoryKitchen,
-      })
-      toast(`Categoría "${created.name}" creada`, 'success')
+      if (editCategory) {
+        const updated = await catalogRepository.updateCategory(ctx, editCategory.id, {
+          name: categoryName,
+          color: categoryColor,
+          kitchen_center: categoryKitchen,
+        })
+        toast(`Categoría "${updated.name}" actualizada`, 'success')
+      } else {
+        const created = await catalogRepository.createCategory(ctx, {
+          name: categoryName,
+          color: categoryColor,
+          kitchen_center: categoryKitchen,
+        })
+        toast(`Categoría "${created.name}" creada`, 'success')
+        setForm(f => ({ ...f, category_id: created.id }))
+      }
       setShowCategoryModal(false)
       await load()
-      setForm(f => ({ ...f, category_id: created.id }))
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'No se pudo crear la categoría', 'error')
+      toast(e instanceof Error ? e.message : 'No se pudo guardar la categoría', 'error')
     } finally {
       setSavingCategory(false)
     }
@@ -183,6 +202,14 @@ export default function CatalogPage() {
                   {c.kitchen_center && (
                     <Badge variant="info" className="text-[9px]">{kitchenCenterLabel(c.kitchen_center)}</Badge>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => openEditCategory(c)}
+                    className="p-1 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-brand-50"
+                    title="Editar categoría"
+                  >
+                    <Pencil size={12} />
+                  </button>
                 </div>
               ))}
             </div>
@@ -305,7 +332,7 @@ export default function CatalogPage() {
         </div>
       </Modal>
 
-      <Modal open={showCategoryModal} onClose={() => setShowCategoryModal(false)} title="Nueva categoría" size="sm">
+      <Modal open={showCategoryModal} onClose={() => setShowCategoryModal(false)} title={editCategory ? 'Editar categoría' : 'Nueva categoría'} size="sm">
         <div className="p-5 space-y-4">
           <Input
             label="Nombre de la categoría"
@@ -350,7 +377,7 @@ export default function CatalogPage() {
           <div className="flex gap-3">
             <Button variant="outline" className="flex-1" onClick={() => setShowCategoryModal(false)}>Cancelar</Button>
             <Button className="flex-1" loading={savingCategory} onClick={handleCreateCategory} disabled={!categoryName.trim()}>
-              Crear categoría
+              {editCategory ? 'Guardar cambios' : 'Crear categoría'}
             </Button>
           </div>
         </div>

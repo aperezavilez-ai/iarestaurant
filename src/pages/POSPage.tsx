@@ -20,9 +20,10 @@ import { orderRepository } from '@/repositories/orderRepository'
 import { tableRepository } from '@/repositories/tableRepository'
 import { cashRepository } from '@/repositories/cashRepository'
 import { crmRepository } from '@/repositories/crmRepository'
+import { createPaymentLink } from '@/services/paymentLinkService'
 import { usePOSStore, calcPOSTotals } from '@/store/posStore'
 import { DEMO_VARIANTS } from '@/data/demoSeed'
-import type { Product, RestaurantTable, Order, Payment } from '@/types'
+import type { Product, RestaurantTable, Order, Payment, PaymentConfig } from '@/types'
 import type { PaymentMethod } from '@/types'
 import type { Customer } from '@/types/demo'
 
@@ -64,6 +65,8 @@ export default function POSPage() {
   const [cashOpen, setCashOpen] = useState(false)
   const [customers, setCustomers] = useState<Customer[]>([])
   const [customerSearch, setCustomerSearch] = useState('')
+  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>({})
+  const [paymentLinkLoading, setPaymentLinkLoading] = useState(false)
 
   const cart = usePOSStore(s => s.cart)
   const tableId = usePOSStore(s => s.tableId)
@@ -108,8 +111,10 @@ export default function POSPage() {
     tenantRepository.getBusinessProfile(ctx).then((profile) => {
       if (profile) {
         setBusinessBranding(buildBusinessBranding(profile.tenant, profile.sucursal, profile.organization))
+        setPaymentConfig(profile.organization?.payment_config || {})
       }
     })
+    tenantRepository.getPaymentConfig(ctx).then(setPaymentConfig)
   }, [ctx, tenant, sucursal])
 
   useEffect(() => {
@@ -117,11 +122,16 @@ export default function POSPage() {
     const cobrar = searchParams.get('cobrar')
     if (!mesa || !tables.length) return
     const t = tables.find(tb => String(tb.number) === mesa)
-    if (t) setTable(t.id, t.number)
+    if (t) {
+      setTable(t.id, t.number)
+      if (t.customer_id && !customerId) {
+        setCustomer(t.customer_id, t.customer_name || '')
+      }
+    }
     if (cobrar === '1' && existingOrderId && cart.length > 0) {
       toast(`Cuenta ${existingOrderFolio || ''} lista para cobrar`, 'success')
     }
-  }, [searchParams, tables, setTable, existingOrderId, existingOrderFolio, cart.length])
+  }, [searchParams, tables, setTable, setCustomer, customerId, existingOrderId, existingOrderFolio, cart.length])
 
   useEffect(() => {
     if (cart.length === 0) { setAiTip(''); return }
@@ -242,6 +252,7 @@ export default function POSPage() {
         mixedCash: payMethod === 'mixto' ? Number(mixedCash) : undefined,
         mixedCard: payMethod === 'mixto' ? Number(mixedCard) : undefined,
         customerId: customerId || undefined,
+        customerName: customerName || undefined,
       }
       const { order, payment } = existingOrderId
         ? await orderRepository.completeOrderPayment(
@@ -289,6 +300,25 @@ export default function POSPage() {
       setLoading(false)
     }
   }
+
+  const handleGeneratePaymentLink = async () => {
+    const folio = existingOrderFolio || `POS-${tableNumber || 'mostrador'}`
+    setPaymentLinkLoading(true)
+    try {
+      const url = await createPaymentLink(total, folio)
+      window.open(url, '_blank', 'noopener,noreferrer')
+      toast('Link de pago abierto — confirma el cobro cuando el cliente pague', 'success')
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'No se pudo generar el link', 'error')
+    } finally {
+      setPaymentLinkLoading(false)
+    }
+  }
+
+  const canGeneratePaymentLink = payMethod === 'tarjeta' &&
+    (paymentConfig.gateway === 'mercadopago' || paymentConfig.gateway === 'stripe') &&
+    ((paymentConfig.gateway === 'mercadopago' && paymentConfig.access_token) ||
+      (paymentConfig.gateway === 'stripe' && paymentConfig.secret_key))
 
   const saveNotes = () => {
     if (notesLineId) updateNotes(notesLineId, notesText)
@@ -579,6 +609,26 @@ export default function POSPage() {
               </>
             )}
           </div>
+
+          {canGeneratePaymentLink && (
+            <Button
+              variant="outline"
+              className="w-full"
+              loading={paymentLinkLoading}
+              onClick={handleGeneratePaymentLink}
+            >
+              <CreditCard size={14} /> Generar link de pago ({paymentConfig.gateway === 'stripe' ? 'Stripe' : 'Mercado Pago'})
+            </Button>
+          )}
+
+          {payMethod === 'tarjeta' && !canGeneratePaymentLink && (
+            <p className="text-[10px] text-slate-500 text-center">
+              <Link to="/app/payment-gateways" className="text-brand-600 font-semibold hover:underline">
+                Configura credenciales
+              </Link>
+              {' '}para generar links de pago automáticos
+            </p>
+          )}
 
           <Button className="w-full" size="lg" loading={loading} onClick={handlePay}
             disabled={!cashOpen || (payMethod === 'efectivo' && Number(cashReceived) < total) || !mixedValid}>

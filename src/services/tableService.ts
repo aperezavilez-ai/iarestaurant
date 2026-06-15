@@ -15,11 +15,20 @@ export const tableService = {
     return data || []
   },
   async updateTableStatus(tableId: string, status: RestaurantTable['status'], orderId?: string): Promise<void> {
-    await supabase.from('tables').update({
+    const patch: Record<string, unknown> = {
       status,
       current_order_id: orderId || null,
       opened_at: status === 'ocupada' ? new Date().toISOString() : null,
-    }).eq('id', tableId)
+    }
+    if (status === 'libre') {
+      patch.customer_id = null
+      patch.customer_name = null
+    }
+    await supabase.from('tables').update(patch).eq('id', tableId)
+  },
+
+  async patchTable(tableId: string, patch: Record<string, unknown>): Promise<void> {
+    await supabase.from('tables').update(patch).eq('id', tableId)
   },
   async createArea(area: TableArea): Promise<void> {
     const { error } = await supabase.from('table_areas').insert({

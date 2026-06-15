@@ -32,6 +32,15 @@ export interface Tenant {
   created_at: string
 }
 
+export type PaymentGatewayId = 'mercadopago' | 'clip' | 'stripe'
+
+export interface PaymentConfig {
+  gateway?: PaymentGatewayId
+  public_key?: string
+  access_token?: string
+  secret_key?: string
+}
+
 export interface Organization {
   id: string
   tenant_id: string
@@ -42,6 +51,7 @@ export interface Organization {
   email?: string
   whatsapp_alerts?: string
   reports_email?: string
+  payment_config?: PaymentConfig
   created_at: string
 }
 
@@ -126,6 +136,8 @@ export interface RestaurantTable {
   status: TableStatus
   current_order_id?: string
   assigned_waiter_id?: string
+  customer_id?: string
+  customer_name?: string
   opened_at?: string
   area?: TableArea
   assigned_waiter?: User
@@ -168,6 +180,8 @@ export interface Order {
   status: OrderStatus
   waiter_id?: string
   cashier_id?: string
+  customer_id?: string
+  customer_name?: string
   subtotal: number
   tax: number
   discount: number

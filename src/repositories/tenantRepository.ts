@@ -2,7 +2,7 @@ import { tenantService } from '@/services/tenantService'
 import { localDb } from '@/lib/localDb'
 import { withLocalFirst } from './base'
 import { isSupabaseConfigured } from '@/lib/config'
-import type { Organization, Sucursal, Tenant } from '@/types'
+import type { Organization, Sucursal, Tenant, PaymentConfig } from '@/types'
 import type { TenantContext } from '@/types/context'
 
 export interface BusinessProfile {
@@ -123,5 +123,31 @@ export const tenantRepository = {
     }
 
     return { tenant: updatedTenant, organization: organization || null, sucursal: sucursal || null }
+  },
+
+  async getPaymentConfig(ctx: TenantContext): Promise<PaymentConfig> {
+    const profile = await this.getBusinessProfile(ctx)
+    return profile?.organization?.payment_config || {}
+  },
+
+  async updatePaymentConfig(ctx: TenantContext, config: PaymentConfig): Promise<PaymentConfig> {
+    let organization = await localDb.getOrganization(ctx.tenantId)
+    if (!organization) throw new Error('Organización no encontrada')
+
+    organization = { ...organization, payment_config: config }
+    await localDb.saveOrganization(organization)
+
+    if (isSupabaseConfigured()) {
+      try {
+        await tenantService.updateOrganization(organization.id, { payment_config: config })
+      } catch {
+        await localDb.enqueueSync({
+          table: 'organizations',
+          operation: 'update',
+          payload: organization as never,
+        })
+      }
+    }
+    return config
   },
 }

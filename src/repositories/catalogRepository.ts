@@ -121,4 +121,30 @@ export const catalogRepository = {
   async deactivateProduct(ctx: TenantContext, id: string): Promise<void> {
     await this.updateProduct(id, { tenant_id: ctx.tenantId, is_active: false })
   },
+
+  async updateCategory(ctx: TenantContext, id: string, data: Partial<Pick<Category, 'name' | 'color' | 'kitchen_center'>>): Promise<Category> {
+    const categories = await localDb.getCategories(ctx.tenantId)
+    const existing = categories.find(c => c.id === id)
+    if (!existing) throw new Error('Categoría no encontrada')
+
+    const updated: Category = {
+      ...existing,
+      name: data.name?.trim() || existing.name,
+      color: data.color || existing.color,
+      kitchen_center: data.kitchen_center ?? existing.kitchen_center,
+    }
+    await localDb.saveCategory(updated)
+    if (isSupabaseConfigured()) {
+      try {
+        await catalogService.updateCategory(id, {
+          name: updated.name,
+          color: updated.color,
+          kitchen_center: updated.kitchen_center,
+        })
+      } catch {
+        await localDb.enqueueSync({ table: 'categories', operation: 'update', payload: updated as never })
+      }
+    }
+    return updated
+  },
 }

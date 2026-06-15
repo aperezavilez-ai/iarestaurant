@@ -5,7 +5,7 @@ import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Badge } from '@/components/ui/Badge'
-import { RefreshCw, LayoutGrid, Map as MapIcon, Split, UserCheck, ArrowRightLeft, Merge, ShoppingBag, UtensilsCrossed, Loader2, Plus, CreditCard } from 'lucide-react'
+import { RefreshCw, LayoutGrid, Map as MapIcon, Split, UserCheck, ArrowRightLeft, Merge, ShoppingBag, UtensilsCrossed, Loader2, Plus, CreditCard, UserCircle, X } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { useTenantContext } from '@/hooks/useTenantContext'
 import { useOpsSync } from '@/hooks/useOpsSync'
@@ -17,7 +17,9 @@ import { toast } from '@/components/ui/Toast'
 import { TableCard } from '@/components/tables/TableCard'
 import { sameOrders, sameTables } from '@/lib/opsEquality'
 import { usePOSStore } from '@/store/posStore'
+import { crmRepository } from '@/repositories/crmRepository'
 import type { RestaurantTable, TableStatus, Order, TableArea } from '@/types'
+import type { Customer } from '@/types/demo'
 
 const statusLabel: Record<TableStatus, string> = {
   libre: 'Libre', ocupada: 'Ocupada', reservada: 'Reservada', cobro_pendiente: 'Por cobrar',
@@ -47,6 +49,10 @@ export default function TablesPage() {
   const [transferModal, setTransferModal] = useState(false)
   const [mergeModal, setMergeModal] = useState(false)
   const [targetTableId, setTargetTableId] = useState<string | null>(null)
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [tableCustomerId, setTableCustomerId] = useState<string | null>(null)
+  const [tableCustomerName, setTableCustomerName] = useState<string | null>(null)
+  const [customerSearch, setCustomerSearch] = useState('')
 
   const load = useCallback(async () => {
     if (!ctx) return
@@ -74,6 +80,28 @@ export default function TablesPage() {
 
   useOpsSync(load, 4000)
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    if (!ctx) return
+    crmRepository.getCustomers(ctx).then(setCustomers)
+  }, [ctx])
+
+  useEffect(() => {
+    if (!selected) return
+    setTableCustomerId(selected.customer_id || null)
+    setTableCustomerName(selected.customer_name || null)
+    setCustomerSearch('')
+  }, [selected])
+
+  const filteredCustomers = useMemo(() => {
+    const q = customerSearch.trim().toLowerCase()
+    if (!q) return customers.slice(0, 6)
+    return customers.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      (c.phone || '').includes(q) ||
+      (c.email || '').toLowerCase().includes(q)
+    ).slice(0, 6)
+  }, [customers, customerSearch])
 
   const filtered = tables.filter(t =>
     (filter === 'todas' || t.status === filter) &&
@@ -197,8 +225,11 @@ export default function TablesPage() {
   const openTable = async () => {
     if (!ctx || !selected) return
     try {
-      await tableRepository.openTable(ctx, selected.id)
-      toast(`Mesa ${selected.number} abierta`, 'success')
+      await tableRepository.openTable(ctx, selected.id, {
+        customerId: tableCustomerId || undefined,
+        customerName: tableCustomerName || undefined,
+      })
+      toast(`Mesa ${selected.number} abierta${tableCustomerName ? ` · ${tableCustomerName}` : ''}`, 'success')
       setSelected(null)
       await load()
     } catch (e) {
@@ -206,7 +237,23 @@ export default function TablesPage() {
     }
   }
 
+  const assignTableCustomer = async (customerId: string | null, customerName: string | null) => {
+    if (!ctx || !selected) return
+    try {
+      await tableRepository.assignCustomer(ctx, selected.id, customerId, customerName)
+      setTableCustomerId(customerId)
+      setTableCustomerName(customerName)
+      toast(customerId ? `Cliente ${customerName} asignado` : 'Cliente quitado de la mesa', 'success')
+      await load()
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Error', 'error')
+    }
+  }
+
   const goToPOS = (table: RestaurantTable) => {
+    if (table.customer_id) {
+      usePOSStore.getState().setCustomer(table.customer_id, table.customer_name || '')
+    }
     navigate(`/app/pos?mesa=${table.number}`)
   }
 
@@ -407,6 +454,59 @@ export default function TablesPage() {
             {selected.assigned_waiter_id && (
               <p className="text-sm text-slate-600">Mesero: <strong>{getWaiterName(selected.assigned_waiter_id)}</strong></p>
             )}
+
+            <div className="rounded-xl border border-command-border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  <UserCircle size={14} /> Cliente CRM
+                </p>
+                {tableCustomerId && (
+                  <button type="button" onClick={() => assignTableCustomer(null, null)} className="text-slate-400 hover:text-ops-danger">
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+              {tableCustomerId ? (
+                <div className="bg-brand-50 rounded-lg px-3 py-2 text-sm font-semibold text-brand-800">
+                  {tableCustomerName}
+                </div>
+              ) : (
+                <>
+                  <Input
+                    placeholder="Buscar cliente por nombre o teléfono..."
+                    value={customerSearch}
+                    onChange={e => setCustomerSearch(e.target.value)}
+                    className="text-xs h-9"
+                  />
+                  {filteredCustomers.length > 0 ? (
+                    <div className="max-h-28 overflow-y-auto space-y-1">
+                      {filteredCustomers.map(c => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => {
+                            if (selected.status === 'libre' || selected.status === 'reservada') {
+                              setTableCustomerId(c.id)
+                              setTableCustomerName(c.name)
+                            } else {
+                              assignTableCustomer(c.id, c.name)
+                            }
+                          }}
+                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-brand-50 border border-transparent hover:border-brand-200"
+                        >
+                          <p className="text-sm font-semibold text-slate-800">{c.name}</p>
+                          <p className="text-[10px] text-slate-500">{c.phone || c.email || 'Sin contacto'} · {c.points} pts</p>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-500">
+                      {customers.length === 0 ? 'Sin clientes en CRM' : 'Sin resultados'}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
 
             <div>
               <p className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1"><UserCheck size={14} /> Asignar mesero</p>

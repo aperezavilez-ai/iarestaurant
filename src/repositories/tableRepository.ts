@@ -1,4 +1,5 @@
 import { tableService } from '@/services/tableService'
+import { orderService } from '@/services/orderService'
 import { localDb } from '@/lib/localDb'
 import { opsBroadcast } from '@/services/opsBroadcast'
 import { withHybridList } from './base'
@@ -64,16 +65,73 @@ export const tableRepository = {
     } catch { /* sync */ }
   },
 
-  async openTable(ctx: TenantContext, tableId: string): Promise<void> {
+  async openTable(
+    ctx: TenantContext,
+    tableId: string,
+    options?: { customerId?: string; customerName?: string },
+  ): Promise<void> {
     const table = await getTableById(ctx, tableId)
     if (!table) throw new Error('Mesa no encontrada')
     if (table.status !== 'libre' && table.status !== 'reservada') throw new Error('Mesa no disponible')
-    await localDb.updateTable({
+    const updated: RestaurantTable = {
       ...table,
       status: 'ocupada',
       opened_at: new Date().toISOString(),
-    })
+      customer_id: options?.customerId,
+      customer_name: options?.customerName,
+    }
+    await localDb.updateTable(updated)
     opsBroadcast.notify()
+    if (isSupabaseConfigured()) {
+      try {
+        await tableService.patchTable(tableId, {
+          status: 'ocupada',
+          opened_at: updated.opened_at,
+          customer_id: options?.customerId,
+          customer_name: options?.customerName,
+        })
+      } catch { /* sync */ }
+    }
+  },
+
+  async assignCustomer(
+    ctx: TenantContext,
+    tableId: string,
+    customerId: string | null,
+    customerName?: string | null,
+  ): Promise<void> {
+    const table = await getTableById(ctx, tableId)
+    if (!table) throw new Error('Mesa no encontrada')
+    const updated: RestaurantTable = {
+      ...table,
+      customer_id: customerId || undefined,
+      customer_name: customerName || undefined,
+    }
+    await localDb.updateTable(updated)
+    opsBroadcast.notify()
+
+    const orders = await localDb.getActiveOrders(ctx.tenantId, ctx.sucursalId)
+    const order = orders.find(o => o.table_id === tableId)
+    if (order) {
+      await localDb.updateOrder({
+        ...order,
+        customer_id: customerId || undefined,
+        customer_name: customerName || undefined,
+        updated_at: new Date().toISOString(),
+      })
+    }
+
+    if (isSupabaseConfigured()) {
+      try {
+        await tableService.patchTable(tableId, {
+          customer_id: customerId,
+          customer_name: customerName,
+        })
+        if (order) {
+          await orderService.updateOrderCustomer(order.id, customerId, customerName)
+        }
+      } catch { /* sync */ }
+    }
   },
 
   async transferTable(ctx: TenantContext, fromId: string, toId: string): Promise<void> {

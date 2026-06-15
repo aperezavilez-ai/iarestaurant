@@ -21,6 +21,7 @@ const PAGE_META: Record<string, { title: string; zone: string }> = {
   '/app/catalog/comensal': { title: 'Menú comensal', zone: 'MENÚ' },
   '/app/qr': { title: 'Códigos QR', zone: 'MENÚ' },
   '/app/cash': { title: 'Caja', zone: 'FINANZAS' },
+  '/app/payment-gateways': { title: 'Pasarelas de pago', zone: 'FINANZAS' },
   '/app/reports': { title: 'Análisis', zone: 'INTELIGENCIA' },
   '/app/users': { title: 'Equipo', zone: 'PERSONAL' },
   '/app/branches': { title: 'Locales', zone: 'RED' },

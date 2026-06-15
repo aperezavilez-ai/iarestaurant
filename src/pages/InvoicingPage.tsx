@@ -9,6 +9,7 @@ import { formatCurrency } from '@/lib/utils'
 import { invoiceRepository, CFDI_USOS } from '@/repositories/invoiceRepository'
 import { orderRepository } from '@/repositories/orderRepository'
 import { useTenantContext } from '@/hooks/useTenantContext'
+import { PaymentGatewaysPromo } from '@/components/payments/PaymentGatewaysPromo'
 import { toast } from '@/components/ui/Toast'
 import type { Invoice } from '@/types/demo'
 import type { Order } from '@/types'
@@ -108,6 +109,8 @@ export default function InvoicingPage() {
           <Plus size={16} /> Facturar venta
         </Button>
       </div>
+
+      <PaymentGatewaysPromo compact />
 
       <div className="grid grid-cols-3 gap-3">
         <Card className="p-4 text-center">

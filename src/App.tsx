@@ -17,6 +17,7 @@ import { MenuLayout } from '@/components/menu/MenuLayout'
 import ReportsPage from '@/pages/ReportsPage'
 import SettingsPage from '@/pages/SettingsPage'
 import CashPage from '@/pages/CashPage'
+import PaymentGatewaysPage from '@/pages/PaymentGatewaysPage'
 import UsersPage from '@/pages/UsersPage'
 import BranchesPage from '@/pages/BranchesPage'
 import ModulesHubPage from '@/pages/ModulesHubPage'
@@ -79,6 +80,7 @@ export default function App() {
             </Route>
             <Route path="categories" element={<CategoriesPage />} />
             <Route path="cash" element={<CashPage />} />
+            <Route path="payment-gateways" element={<PaymentGatewaysPage />} />
             <Route path="promotions" element={<PromotionsPage />} />
             <Route path="delivery" element={<DeliveryPage />} />
             <Route path="reservations" element={<ReservationsPage />} />

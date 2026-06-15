@@ -40,6 +40,7 @@ export const ALL_MODULES: ModuleDef[] = [
   { id: 'catalog', phase: 1, label: 'Catálogo', path: '/app/catalog', icon: Package, group: 'Operación', roles: ['admin_restaurant','gerente','supervisor'], description: 'Productos, variantes y categorías' },
   { id: 'categories', phase: 1, label: 'Categorías', path: '/app/categories', icon: Package, group: 'Operación', roles: ['admin_restaurant','gerente'], description: 'Gestión de categorías del menú' },
   { id: 'cash', phase: 1, label: 'Caja', path: '/app/cash', icon: Vault, group: 'Operación', roles: ['cajero','gerente','admin_restaurant'], description: 'Apertura, corte X y corte Z' },
+  { id: 'payment-gateways', phase: 1, label: 'Pasarelas', path: '/app/payment-gateways', icon: CreditCard, group: 'Clientes & Ventas', roles: ['gerente','admin_restaurant'], description: 'Mercado Pago, Clip y Stripe para cobrar comensales' },
   { id: 'promotions', phase: 0, label: 'Promociones', path: '/app/promotions', icon: Zap, group: 'Operación', roles: ['gerente','admin_restaurant'], description: '2x1, combos, happy hour, cupones' },
   { id: 'delivery', phase: 14, label: 'Delivery', path: '/app/delivery', icon: Bike, group: 'Operación', roles: ['gerente','supervisor','admin_restaurant'], description: 'Pedidos a domicilio y repartidores' },
   { id: 'reservations', phase: 15, label: 'Reservaciones', path: '/app/reservations', icon: Calendar, group: 'Operación', roles: ['mesero','gerente','admin_restaurant'], description: 'Calendario y lista de espera' },

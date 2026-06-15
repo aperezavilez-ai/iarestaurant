@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/Modal'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { toast } from '@/components/ui/Toast'
 import { useTenantContext } from '@/hooks/useTenantContext'
+import { PaymentGatewaysPromo } from '@/components/payments/PaymentGatewaysPromo'
 import { cashRepository } from '@/repositories/cashRepository'
 import { dashboardRepository } from '@/repositories/dashboardRepository'
 import { useOpsDataStore } from '@/store/opsDataStore'
@@ -102,6 +103,7 @@ export default function CashPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
+      <PaymentGatewaysPromo />
       <QRValidationPanel />
       <Card>
         <CardHeader>

@@ -76,7 +76,7 @@ export const catalogRepository = {
     return product
   },
 
-  async createCategory(ctx: TenantContext, data: { name: string; color?: string }): Promise<Category> {
+  async createCategory(ctx: TenantContext, data: { name: string; color?: string; kitchen_center?: string }): Promise<Category> {
     const existing = await this.getCategories(ctx)
     const duplicate = existing.find(c => c.name.trim().toLowerCase() === data.name.trim().toLowerCase())
     if (duplicate) throw new Error(`Ya existe la categoría "${duplicate.name}"`)
@@ -93,6 +93,7 @@ export const catalogRepository = {
       color: data.color || CATEGORY_COLORS[existing.length % CATEGORY_COLORS.length],
       sort_order: sortOrder,
       is_active: true,
+      kitchen_center: data.kitchen_center,
     }
 
     await localDb.saveCategory(category)

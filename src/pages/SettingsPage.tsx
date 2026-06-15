@@ -17,7 +17,18 @@ export default function SettingsPage() {
   const { tenant, sucursal, setTenant } = useAuthStore()
   const ctx = useTenantContext()
   const [org, setOrg] = useState<Organization | null>(null)
-  const [form, setForm] = useState({ tenantName: '', rfc: '', phone: '', email: '', address: '' })
+  const [form, setForm] = useState({
+    tenantName: '',
+    rfc: '',
+    phone: '',
+    email: '',
+    address: '',
+    whatsappAlerts: '',
+    reportsEmail: '',
+    timezone: 'America/Mexico_City',
+    currency: 'MXN',
+    taxRate: '16',
+  })
   const [saving, setSaving] = useState(false)
   const [usage, setUsage] = useState({ sucursales: 0, usuarios: 4, mesas: 0, productos: 0 })
 
@@ -32,6 +43,11 @@ export default function SettingsPage() {
         phone: profile.organization?.phone || profile.sucursal?.phone || '',
         email: profile.organization?.email || '',
         address: profile.organization?.address || profile.sucursal?.address || '',
+        whatsappAlerts: profile.organization?.whatsapp_alerts || '',
+        reportsEmail: profile.organization?.reports_email || profile.organization?.email || '',
+        timezone: profile.sucursal?.timezone || 'America/Mexico_City',
+        currency: profile.sucursal?.currency || 'MXN',
+        taxRate: String(profile.sucursal?.tax_rate ?? 16),
       })
     })
     Promise.all([
@@ -55,10 +71,22 @@ export default function SettingsPage() {
     if (!ctx || !form.tenantName.trim()) return
     setSaving(true)
     try {
-      const profile = await tenantRepository.updateBusiness(ctx, form)
+      const taxRate = Number(form.taxRate)
+      const profile = await tenantRepository.updateBusiness(ctx, {
+        tenantName: form.tenantName,
+        rfc: form.rfc,
+        phone: form.phone,
+        email: form.email,
+        address: form.address,
+        whatsappAlerts: form.whatsappAlerts,
+        reportsEmail: form.reportsEmail,
+        timezone: form.timezone,
+        currency: form.currency,
+        taxRate: Number.isFinite(taxRate) ? taxRate : 16,
+      })
       setTenant(profile.tenant)
       setOrg(profile.organization)
-      toast('Datos del negocio guardados', 'success')
+      toast('Configuración guardada', 'success')
     } catch (e) {
       toast(e instanceof Error ? e.message : 'No se pudo guardar', 'error')
     } finally {
@@ -112,11 +140,6 @@ export default function SettingsPage() {
           {sucursal && (
             <p className="text-xs text-slate-500">Sucursal activa: <strong>{sucursal.name}</strong></p>
           )}
-          <div className="flex justify-end">
-            <Button onClick={handleSave} loading={saving} disabled={!form.tenantName.trim()}>
-              Guardar cambios
-            </Button>
-          </div>
         </CardBody>
       </Card>
 
@@ -129,9 +152,9 @@ export default function SettingsPage() {
         </CardHeader>
         <CardBody>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Input label="Zona horaria" defaultValue={sucursal?.timezone || 'America/Mexico_City'} />
-            <Input label="Moneda" defaultValue={sucursal?.currency || 'MXN'} />
-            <Input label="IVA (%)" defaultValue={String(sucursal?.tax_rate || 16)} type="number" />
+            <Input label="Zona horaria" value={form.timezone} onChange={e => setForm(f => ({ ...f, timezone: e.target.value }))} />
+            <Input label="Moneda" value={form.currency} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))} />
+            <Input label="IVA (%)" value={form.taxRate} onChange={e => setForm(f => ({ ...f, taxRate: e.target.value }))} type="number" />
           </div>
         </CardBody>
       </Card>
@@ -145,11 +168,28 @@ export default function SettingsPage() {
         </CardHeader>
         <CardBody>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="WhatsApp para alertas" placeholder="+52 55 0000 0000" />
-            <Input label="Email de reportes" placeholder={org?.email || 'reportes@restaurante.com'} type="email" />
+            <Input
+              label="WhatsApp para alertas"
+              placeholder="+52 55 0000 0000"
+              value={form.whatsappAlerts}
+              onChange={e => setForm(f => ({ ...f, whatsappAlerts: e.target.value }))}
+            />
+            <Input
+              label="Email de reportes"
+              placeholder={org?.email || 'reportes@restaurante.com'}
+              type="email"
+              value={form.reportsEmail}
+              onChange={e => setForm(f => ({ ...f, reportsEmail: e.target.value }))}
+            />
           </div>
         </CardBody>
       </Card>
+
+      <div className="flex justify-end">
+        <Button onClick={handleSave} loading={saving} disabled={!form.tenantName.trim()}>
+          Guardar configuración
+        </Button>
+      </div>
 
       <Card>
         <CardHeader>

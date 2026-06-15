@@ -26,6 +26,10 @@ export const tenantService = {
     await supabase.from('organizations').update(updates).eq('id', id)
   },
 
+  async updateSucursal(id: string, updates: Partial<Sucursal>): Promise<void> {
+    await supabase.from('sucursales').update(updates).eq('id', id)
+  },
+
   async updateTenant(id: string, updates: Partial<Tenant>): Promise<void> {
     await supabase.from('tenants').update(updates).eq('id', id)
   },

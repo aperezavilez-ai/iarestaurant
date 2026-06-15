@@ -11,6 +11,7 @@ import { useTenantContext } from '@/hooks/useTenantContext'
 import { catalogRepository } from '@/repositories/catalogRepository'
 import { imageUploadService } from '@/services/imageUploadService'
 import { getProductImageUrl } from '@/lib/productImages'
+import { KITCHEN_CENTER_OPTIONS, kitchenCenterLabel, suggestKitchenCenter } from '@/lib/productionCenters'
 import type { Product, Category } from '@/types'
 
 export default function CatalogPage() {
@@ -22,6 +23,7 @@ export default function CatalogPage() {
   const [showCategoryModal, setShowCategoryModal] = useState(false)
   const [categoryName, setCategoryName] = useState('')
   const [categoryColor, setCategoryColor] = useState('#f59000')
+  const [categoryKitchen, setCategoryKitchen] = useState('barra_caliente')
   const [savingCategory, setSavingCategory] = useState(false)
   const [editProduct, setEditProduct] = useState<Product | null>(null)
   const [form, setForm] = useState({ name: '', price: '', cost: '', category_id: '', image_url: '' })
@@ -128,6 +130,7 @@ export default function CatalogPage() {
   const openNewCategory = () => {
     setCategoryName('')
     setCategoryColor(CATEGORY_COLORS[categories.length % CATEGORY_COLORS.length])
+    setCategoryKitchen('barra_caliente')
     setShowCategoryModal(true)
   }
 
@@ -138,6 +141,7 @@ export default function CatalogPage() {
       const created = await catalogRepository.createCategory(ctx, {
         name: categoryName,
         color: categoryColor,
+        kitchen_center: categoryKitchen,
       })
       toast(`Categoría "${created.name}" creada`, 'success')
       setShowCategoryModal(false)
@@ -175,7 +179,10 @@ export default function CatalogPage() {
                   className="flex items-center gap-2 px-3 py-2 rounded-xl border border-command-border bg-white text-sm font-semibold text-slate-800"
                 >
                   <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: c.color }} />
-                  {c.name}
+                  <span>{c.name}</span>
+                  {c.kitchen_center && (
+                    <Badge variant="info" className="text-[9px]">{kitchenCenterLabel(c.kitchen_center)}</Badge>
+                  )}
                 </div>
               ))}
             </div>
@@ -304,8 +311,25 @@ export default function CatalogPage() {
             label="Nombre de la categoría"
             placeholder="Ej. Barra Caliente, Souvenirs, Bebidas..."
             value={categoryName}
-            onChange={e => setCategoryName(e.target.value)}
+            onChange={e => {
+              const name = e.target.value
+              setCategoryName(name)
+              if (name.trim()) setCategoryKitchen(suggestKitchenCenter(name))
+            }}
           />
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Área de cocina (KDS)</label>
+            <select
+              value={categoryKitchen}
+              onChange={e => setCategoryKitchen(e.target.value)}
+              className="w-full rounded-xl border border-command-border bg-white text-slate-800 px-3 py-2.5 text-sm"
+            >
+              {KITCHEN_CENTER_OPTIONS.map(area => (
+                <option key={area.id} value={area.id}>{area.label}</option>
+              ))}
+            </select>
+            <p className="text-[10px] text-slate-500 mt-1">Los productos de esta categoría aparecerán en esa pantalla de cocina.</p>
+          </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
             <div className="flex flex-wrap gap-2">

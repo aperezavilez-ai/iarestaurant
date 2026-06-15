@@ -40,6 +40,8 @@ export interface Organization {
   address?: string
   phone?: string
   email?: string
+  whatsapp_alerts?: string
+  reports_email?: string
   created_at: string
 }
 
@@ -81,6 +83,7 @@ export interface Category {
   icon?: string
   sort_order: number
   is_active: boolean
+  kitchen_center?: string
 }
 
 export interface Product {

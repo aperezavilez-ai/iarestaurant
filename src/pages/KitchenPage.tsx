@@ -9,6 +9,7 @@ import { realtimeService } from '@/services/realtimeService'
 import { isSupabaseConfigured } from '@/lib/config'
 import { orderRepository } from '@/repositories/orderRepository'
 import { tableRepository } from '@/repositories/tableRepository'
+import { catalogRepository } from '@/repositories/catalogRepository'
 import { useLiveFlowStore } from '@/store/liveFlowStore'
 import { KITCHEN_CENTERS, itemMatchesCenter, getProductCategory, type KitchenCenterId } from '@/lib/productionCenters'
 import type { Order, OrderItem } from '@/types'
@@ -19,15 +20,22 @@ export default function KitchenPage() {
   const [tableMap, setTableMap] = useState<Record<string, number>>({})
   const [now, setNow] = useState(Date.now())
   const [center, setCenter] = useState<KitchenCenterId>('all')
+  const [productKitchenMap, setProductKitchenMap] = useState<Record<string, string>>({})
 
   const load = useCallback(async () => {
     if (!ctx) return
-    const [active, tables] = await Promise.all([
+    const [active, tables, products] = await Promise.all([
       orderRepository.getActiveOrders(ctx),
       tableRepository.getTables(ctx),
+      catalogRepository.getProducts(ctx),
     ])
     setOrders(active.filter(o => o.status !== 'cobrada' && o.status !== 'cancelada'))
     setTableMap(Object.fromEntries(tables.map(t => [t.id, t.number])))
+    const map: Record<string, string> = {}
+    for (const p of products) {
+      if (p.category?.kitchen_center) map[p.id] = p.category.kitchen_center
+    }
+    setProductKitchenMap(map)
   }, [ctx])
 
   useOpsSync(load, 3000)
@@ -89,7 +97,11 @@ export default function KitchenPage() {
   }
 
   const filterItems = (items: OrderItem[]) =>
-    items.filter(i => itemMatchesCenter(getProductCategory(i.product_id, i.product_name), center))
+    items.filter(i => itemMatchesCenter(
+      productKitchenMap[i.product_id],
+      getProductCategory(i.product_id, i.product_name),
+      center
+    ))
 
   const visibleOrders = orders
     .map(o => ({ ...o, items: filterItems(o.items || []) }))

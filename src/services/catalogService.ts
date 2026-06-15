@@ -12,6 +12,10 @@ export const catalogService = {
     if (error) throw error
     return data
   },
+
+  async updateCategory(id: string, updates: Partial<Category>): Promise<void> {
+    await supabase.from('categories').update(updates).eq('id', id)
+  },
   async getProducts(tenantId: string, categoryId?: string): Promise<Product[]> {
     let q = supabase.from('products').select('*, category:categories(*)').eq('tenant_id', tenantId).eq('is_active', true)
     if (categoryId) q = q.eq('category_id', categoryId)

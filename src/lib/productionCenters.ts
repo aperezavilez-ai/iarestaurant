@@ -9,8 +9,30 @@ export const KITCHEN_CENTERS = [
 
 export type KitchenCenterId = (typeof KITCHEN_CENTERS)[number]['id']
 
-export function itemMatchesCenter(categoryName: string | undefined, centerId: KitchenCenterId): boolean {
+export const KITCHEN_CENTER_OPTIONS = KITCHEN_CENTERS.filter(c => c.id !== 'all')
+
+export function kitchenCenterLabel(id: string | undefined | null): string {
+  if (!id) return 'Sin asignar'
+  return KITCHEN_CENTERS.find(c => c.id === id)?.label || id
+}
+
+export function suggestKitchenCenter(categoryName: string): KitchenCenterId {
+  const n = categoryName.toLowerCase()
+  if (n.includes('souvenir')) return 'souvenirs'
+  if (n.includes('postre')) return 'postres'
+  if (n.includes('bebida') || n.includes('cerveza')) return 'bebidas'
+  if (n.includes('coctel') || n.includes('barra fr')) return 'barra_fria'
+  if (n.includes('barra cal') || n.includes('taco') || n.includes('platillo') || n.includes('entrada')) return 'barra_caliente'
+  return 'barra_caliente'
+}
+
+export function itemMatchesCenter(
+  kitchenCenter: string | undefined | null,
+  categoryName: string | undefined,
+  centerId: KitchenCenterId
+): boolean {
   if (centerId === 'all') return true
+  if (kitchenCenter) return kitchenCenter === centerId
   const center = KITCHEN_CENTERS.find(c => c.id === centerId)
   if (!center) return true
   return center.categories.some(c => categoryName?.includes(c) || c === categoryName)

@@ -11,6 +11,19 @@ export interface BusinessProfile {
   sucursal: Sucursal | null
 }
 
+export interface BusinessSettingsInput {
+  tenantName: string
+  rfc?: string
+  phone?: string
+  email?: string
+  address?: string
+  whatsappAlerts?: string
+  reportsEmail?: string
+  timezone?: string
+  currency?: string
+  taxRate?: number
+}
+
 export const tenantRepository = {
   async getBusinessProfile(ctx: TenantContext): Promise<BusinessProfile | null> {
     const [tenant, organization, sucursales] = await Promise.all([
@@ -42,16 +55,7 @@ export const tenantRepository = {
     return { tenant, organization: organization || null, sucursal: sucursal || null }
   },
 
-  async updateBusiness(
-    ctx: TenantContext,
-    data: {
-      tenantName: string
-      rfc?: string
-      phone?: string
-      email?: string
-      address?: string
-    },
-  ): Promise<BusinessProfile> {
+  async updateBusiness(ctx: TenantContext, data: BusinessSettingsInput): Promise<BusinessProfile> {
     const tenant = await localDb.getTenant(ctx.tenantId)
     if (!tenant) throw new Error('Restaurante no encontrado')
 
@@ -67,8 +71,23 @@ export const tenantRepository = {
         phone: data.phone?.trim() || organization.phone,
         email: data.email?.trim() || organization.email,
         address: data.address?.trim() || organization.address,
+        whatsapp_alerts: data.whatsappAlerts?.trim() || organization.whatsapp_alerts,
+        reports_email: data.reportsEmail?.trim() || organization.reports_email,
       }
       await localDb.saveOrganization(organization)
+    }
+
+    let sucursal = await localDb.getSucursal(ctx.sucursalId)
+    if (sucursal && (data.timezone || data.currency || data.taxRate != null)) {
+      sucursal = {
+        ...sucursal,
+        timezone: data.timezone?.trim() || sucursal.timezone,
+        currency: data.currency?.trim() || sucursal.currency,
+        tax_rate: data.taxRate ?? sucursal.tax_rate,
+        phone: data.phone?.trim() || sucursal.phone,
+        address: data.address?.trim() || sucursal.address,
+      }
+      await localDb.saveSucursal(sucursal)
     }
 
     if (isSupabaseConfigured()) {
@@ -81,6 +100,17 @@ export const tenantRepository = {
             phone: organization.phone,
             email: organization.email,
             address: organization.address,
+            whatsapp_alerts: organization.whatsapp_alerts,
+            reports_email: organization.reports_email,
+          })
+        }
+        if (sucursal) {
+          await tenantService.updateSucursal(sucursal.id, {
+            timezone: sucursal.timezone,
+            currency: sucursal.currency,
+            tax_rate: sucursal.tax_rate,
+            phone: sucursal.phone,
+            address: sucursal.address,
           })
         }
       } catch {
@@ -92,7 +122,6 @@ export const tenantRepository = {
       }
     }
 
-    const sucursal = await localDb.getSucursal(ctx.sucursalId)
     return { tenant: updatedTenant, organization: organization || null, sucursal: sucursal || null }
   },
 }

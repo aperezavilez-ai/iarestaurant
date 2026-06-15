@@ -72,12 +72,12 @@ export const DEMO_CREDENTIALS = [
 ]
 
 export const SEED_CATEGORIES: Category[] = [
-  { id: 'cat-tacos', tenant_id: T, sucursal_id: S, name: 'Tacos', color: '#f59000', sort_order: 1, is_active: true },
-  { id: 'cat-platillos', tenant_id: T, sucursal_id: S, name: 'Platillos', color: '#16213e', sort_order: 2, is_active: true },
-  { id: 'cat-entradas', tenant_id: T, sucursal_id: S, name: 'Entradas', color: '#10b981', sort_order: 3, is_active: true },
-  { id: 'cat-bebidas', tenant_id: T, sucursal_id: S, name: 'Bebidas', color: '#3b82f6', sort_order: 4, is_active: true },
-  { id: 'cat-cocteles', tenant_id: T, sucursal_id: S, name: 'Cocteles', color: '#8b5cf6', sort_order: 5, is_active: true },
-  { id: 'cat-postres', tenant_id: T, sucursal_id: S, name: 'Postres', color: '#ec4899', sort_order: 6, is_active: true },
+  { id: 'cat-tacos', tenant_id: T, sucursal_id: S, name: 'Tacos', color: '#f59000', sort_order: 1, is_active: true, kitchen_center: 'barra_caliente' },
+  { id: 'cat-platillos', tenant_id: T, sucursal_id: S, name: 'Platillos', color: '#16213e', sort_order: 2, is_active: true, kitchen_center: 'barra_caliente' },
+  { id: 'cat-entradas', tenant_id: T, sucursal_id: S, name: 'Entradas', color: '#10b981', sort_order: 3, is_active: true, kitchen_center: 'barra_caliente' },
+  { id: 'cat-bebidas', tenant_id: T, sucursal_id: S, name: 'Bebidas', color: '#3b82f6', sort_order: 4, is_active: true, kitchen_center: 'bebidas' },
+  { id: 'cat-cocteles', tenant_id: T, sucursal_id: S, name: 'Cocteles', color: '#8b5cf6', sort_order: 5, is_active: true, kitchen_center: 'barra_fria' },
+  { id: 'cat-postres', tenant_id: T, sucursal_id: S, name: 'Postres', color: '#ec4899', sort_order: 6, is_active: true, kitchen_center: 'postres' },
 ]
 
 export const SEED_PRODUCTS: Product[] = [

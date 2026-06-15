@@ -37,25 +37,19 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const session = await authRepository.signIn(email, password)
+      setSession(session)
+      toast(`Sistema activo — Bienvenido ${session.user.full_name}`, 'success')
+      navigate('/app/dashboard')
       if (isSupabaseConfigured()) {
-        await bootstrapService.pullFromRemote({
+        void bootstrapService.pullFromRemote({
           tenantId: session.tenant.id,
           sucursalId: session.sucursal.id,
           userId: session.user.id,
         })
       }
-      setSession(session)
-      toast(`Sistema activo — Bienvenido ${session.user.full_name}`, 'success')
-      navigate('/app/dashboard')
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Credenciales incorrectas'
-      if (msg.toLowerCase().includes('invalid login')) {
-        toast('Correo o contraseña incorrectos', 'error')
-      } else if (msg.includes('Email not confirmed')) {
-        toast('Confirma tu correo para continuar', 'error')
-      } else {
-        toast(msg.length < 80 ? msg : 'Acceso denegado — verifica credenciales', 'error')
-      }
+      toast(msg.length < 120 ? msg : 'Acceso denegado — verifica credenciales', 'error')
     } finally {
       setLoading(false)
     }
@@ -148,7 +142,7 @@ export default function LoginPage() {
             </p>
             <div className="mt-6 pt-6 border-t border-command-border">
               <p className="text-[10px] text-slate-500 text-center mb-3 uppercase tracking-wider">Accesos demo</p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {demoUsers.map(u => (
                   <button
                     key={u.email}
@@ -157,10 +151,13 @@ export default function LoginPage() {
                     className="text-left p-2.5 rounded-xl border border-command-border hover:border-brand-400 hover:bg-brand-50 transition-all"
                   >
                     <p className="text-xs font-semibold text-slate-700 capitalize">{u.role.replace('_', ' ')}</p>
-                    <p className="text-[10px] text-slate-500 truncate font-mono">{u.email}</p>
+                    <p className="text-[10px] text-slate-600 font-mono break-all leading-snug mt-0.5">{u.email}</p>
                   </button>
                 ))}
               </div>
+              <p className="text-[10px] text-slate-400 mt-2 text-center">
+                Admin: <span className="font-mono text-slate-600">alfonsoavilery@icloud.com</span>
+              </p>
             </div>
           </div>
           <p className="text-slate-500 text-xs font-mono lg:hidden mt-6 text-center">

@@ -19,6 +19,7 @@ const admin = createClient(url, key, {
 })
 
 const STAFF = [
+  { email: 'alfonsoavilery@icloud.com', password: 'Calurore1028@', full_name: 'Alfonso Avilery', role: 'admin_restaurant' },
   { email: 'cajero@iarestaurant.com', password: 'demo123', full_name: 'Cajero Demo', role: 'cajero' },
   { email: 'mesero@iarestaurant.com', password: 'demo123', full_name: 'Mesero Demo', role: 'mesero' },
   { email: 'cocina@iarestaurant.com', password: 'demo123', full_name: 'Cocina Demo', role: 'cocina' },

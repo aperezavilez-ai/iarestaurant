@@ -5,6 +5,26 @@ import { localDb } from '@/lib/localDb'
 import { DEMO_CREDENTIALS, SEED_STAFF, SEED_TENANT, SEED_SUCURSAL } from '@/data/seed'
 import type { User, Tenant, Sucursal } from '@/types'
 
+const ADMIN_EMAIL = 'alfonsoavilery@icloud.com'
+
+function normalizeLoginError(email: string, err: unknown): Error {
+  const normalized = email.trim().toLowerCase()
+  if (normalized === 'alfonsoaviler@icloud.com') {
+    return new Error(`Correo incorrecto. Usa: ${ADMIN_EMAIL} (lleva "y" en avilery)`)
+  }
+  if (err instanceof Error) {
+    const msg = err.message
+    if (msg.toLowerCase().includes('invalid login')) {
+      return new Error('Correo o contraseña incorrectos')
+    }
+    if (msg.includes('Email not confirmed')) {
+      return new Error('Confirma tu correo para continuar')
+    }
+    return err
+  }
+  return new Error('Credenciales incorrectas')
+}
+
 export interface AuthSession {
   user: User
   tenant: Tenant
@@ -28,7 +48,7 @@ export const authRepository = {
         if (!tenant || !sucursal) throw new Error('Tenant o sucursal no encontrados')
         return { user: profile, tenant, sucursal }
       } catch (err) {
-        if (!import.meta.env.DEV) throw err
+        throw normalizeLoginError(normalizedEmail, err)
       }
     }
 

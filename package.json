@@ -11,7 +11,8 @@
     "supabase:sql": "node scripts/run-sql.mjs",
     "supabase:staff": "node scripts/seed-staff.mjs",
     "supabase:link": "npx supabase link --project-ref pssycnwgolxiwoyzdsdg",
-    "configure:domain": "node scripts/configure-domain.mjs"
+    "configure:domain": "node scripts/configure-domain.mjs",
+    "ensure:admin": "node scripts/ensure-admin.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

@@ -165,7 +165,7 @@ export const orderRepository = {
     await localDb.saveOrder({ ...order, items }, items)
     for (const p of payments) await localDb.savePayment(p)
     await inventoryRepository.deductForOrder(ctx, lines, folio)
-    if (options?.customerId) crmRepository.recordSale(options.customerId, total)
+    if (options?.customerId) await crmRepository.recordSale(ctx, options.customerId, total)
     opsBroadcast.notify()
 
     if (options?.tableId) {

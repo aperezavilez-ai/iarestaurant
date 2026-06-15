@@ -12,6 +12,7 @@ import type {
   Organization,
   Tenant,
 } from '@/types'
+import type { Customer } from '@/types/demo'
 import {
   SEED_CATEGORIES,
   SEED_PRODUCTS,
@@ -46,26 +47,28 @@ interface IARestaurantDB extends DBSchema {
   order_items: { key: string; value: OrderItem }
   payments: { key: string; value: Payment }
   cash_registers: { key: string; value: CashRegister }
+  customers: { key: string; value: Customer }
   sync_queue: { key: string; value: SyncQueueItem }
 }
 
 const DB_NAME = 'ia-restaurant'
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 let dbPromise: Promise<IDBPDatabase<IARestaurantDB>> | null = null
 
 function getDb() {
   if (!dbPromise) {
     dbPromise = openDB<IARestaurantDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
+      upgrade(db, oldVersion) {
         const stores = [
           'meta', 'tenants', 'organizations', 'sucursales', 'categories',
           'products', 'table_areas', 'tables', 'orders', 'order_items',
-          'payments', 'cash_registers', 'sync_queue',
+          'payments', 'cash_registers', 'customers', 'sync_queue',
         ] as const
         stores.forEach((s) => {
           if (!db.objectStoreNames.contains(s)) db.createObjectStore(s)
         })
+        void oldVersion
       },
     })
   }
@@ -75,7 +78,7 @@ function getDb() {
 type StoreName =
   | 'tenants' | 'organizations' | 'sucursales' | 'categories' | 'products'
   | 'table_areas' | 'tables' | 'orders' | 'order_items' | 'payments'
-  | 'cash_registers' | 'sync_queue'
+  | 'cash_registers' | 'customers' | 'sync_queue'
 
 async function putAll(store: StoreName, items: { id: string }[]) {
   const db = await getDb()
@@ -110,7 +113,7 @@ export async function resetLocalData(): Promise<void> {
   const db = await getDb()
   const stores = [
     'tenants', 'organizations', 'sucursales', 'categories', 'products',
-    'table_areas', 'tables', 'orders', 'order_items', 'payments', 'cash_registers', 'sync_queue',
+    'table_areas', 'tables', 'orders', 'order_items', 'payments', 'cash_registers', 'customers', 'sync_queue',
   ] as const
   for (const s of stores) await db.clear(s)
   await db.delete('meta', 'app')
@@ -269,6 +272,23 @@ export const localDb = {
   async saveCashRegister(register: CashRegister) {
     const db = await getDb()
     await db.put('cash_registers', register)
+  },
+
+  async getCustomers(tenantId: string) {
+    const all = await getAll('customers')
+    return all
+      .filter((c) => c.tenant_id === tenantId)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+  },
+
+  async saveCustomer(customer: Customer) {
+    const db = await getDb()
+    await db.put('customers', customer)
+  },
+
+  async updateCustomer(customer: Customer) {
+    const db = await getDb()
+    await db.put('customers', customer)
   },
 
   async enqueueSync(item: Omit<SyncQueueItem, 'id' | 'created_at'>) {

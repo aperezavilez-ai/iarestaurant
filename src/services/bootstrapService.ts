@@ -37,7 +37,7 @@ async function pullFromRemoteInner(ctx: TenantContext): Promise<{ ok: boolean; t
   const synced: string[] = []
 
     try {
-      const [categories, products, areas, tables, orders, payments, ingredients, movements, tenant, organization, sucursales] = await Promise.all([
+      const [categories, products, areas, tables, orders, payments, ingredients, movements, customers, tenant, organization, sucursales] = await Promise.all([
         supabase.from('categories').select('*').eq('tenant_id', ctx.tenantId),
         supabase.from('products').select('*').eq('tenant_id', ctx.tenantId),
         supabase.from('table_areas').select('*').eq('sucursal_id', ctx.sucursalId),
@@ -61,6 +61,7 @@ async function pullFromRemoteInner(ctx: TenantContext): Promise<{ ok: boolean; t
           .eq('tenant_id', ctx.tenantId)
           .order('created_at', { ascending: false })
           .limit(100),
+        supabase.from('customers').select('*').eq('tenant_id', ctx.tenantId).order('created_at', { ascending: false }),
         tenantService.getTenant(ctx.tenantId),
         tenantService.getOrganization(ctx.tenantId),
         tenantService.getSucursales(ctx.tenantId),
@@ -113,6 +114,25 @@ async function pullFromRemoteInner(ctx: TenantContext): Promise<{ ok: boolean; t
       if (payments.data?.length) {
         for (const p of payments.data) await localDb.savePayment(p)
         synced.push('payments')
+      }
+
+      if (customers.data?.length) {
+        for (const c of customers.data) {
+          await localDb.saveCustomer({
+            id: c.id,
+            tenant_id: c.tenant_id,
+            sucursal_id: c.sucursal_id,
+            name: c.name,
+            email: c.email || undefined,
+            phone: c.phone || undefined,
+            visits: Number(c.visits) || 0,
+            points: Number(c.points) || 0,
+            total_spent: Number(c.total_spent) || 0,
+            segment: c.segment || 'nuevo',
+            created_at: (c.created_at as string)?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+          })
+        }
+        synced.push('customers')
       }
 
       if (ingredients.data?.length) {

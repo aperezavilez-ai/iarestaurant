@@ -1,17 +1,27 @@
+import { useEffect, useState } from 'react'
 import { Gift } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { formatCurrency } from '@/lib/utils'
 import { crmRepository } from '@/repositories/crmRepository'
+import { useTenantContext } from '@/hooks/useTenantContext'
+import type { Customer } from '@/types/demo'
 
 export default function LoyaltyPage() {
+  const ctx = useTenantContext()
+  const [customers, setCustomers] = useState<Customer[]>([])
   const rules = crmRepository.getLoyaltyRules()
-  const top = [...crmRepository.getCustomers()].sort((a, b) => b.points - a.points).slice(0, 6)
+  const top = [...customers].sort((a, b) => b.points - a.points).slice(0, 6)
+
+  useEffect(() => {
+    if (!ctx) return
+    crmRepository.getCustomers(ctx).then(setCustomers)
+  }, [ctx])
 
   return (
     <div className="space-y-6 animate-fadeUp">
       <div>
-        <p className="text-[10px] font-mono text-orange-600 uppercase tracking-widest">Fase 32</p>
+        <p className="text-[10px] font-mono text-orange-600 uppercase tracking-widest">Lealtad</p>
         <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2"><Gift size={24} /> Programa de lealtad</h1>
         <p className="text-sm text-slate-500">Puntos automáticos al registrar ventas en CRM</p>
       </div>
@@ -28,7 +38,9 @@ export default function LoyaltyPage() {
         </Card>
         <Card className="p-5">
           <p className="text-[10px] font-mono text-slate-500 uppercase mb-3">Top clientes</p>
-          {top.map(c => (
+          {top.length === 0 ? (
+            <p className="text-sm text-slate-500">Registra clientes y ventas en CRM para ver el ranking.</p>
+          ) : top.map(c => (
             <div key={c.id} className="flex justify-between py-2 border-b border-command-border last:border-0">
               <div>
                 <span className="text-sm font-semibold">{c.name}</span>

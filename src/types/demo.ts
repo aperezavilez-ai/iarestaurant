@@ -44,6 +44,7 @@ export interface PurchaseOrder {
 export interface Customer {
   id: string
   tenant_id: string
+  sucursal_id?: string
   name: string
   email?: string
   phone?: string

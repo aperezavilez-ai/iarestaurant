@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEffect, useState, useMemo } from 'react'
+import { useSearchParams, Link } from 'react-router-dom'
 import {
   Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, Banknote,
-  Smartphone, Sparkles, UtensilsCrossed, Tag, MessageSquare, Users, ChefHat, Unlock,
+  Smartphone, Sparkles, UtensilsCrossed, Tag, MessageSquare, Users, ChefHat, Unlock, UserCircle, X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -19,10 +19,12 @@ import { catalogRepository } from '@/repositories/catalogRepository'
 import { orderRepository } from '@/repositories/orderRepository'
 import { tableRepository } from '@/repositories/tableRepository'
 import { cashRepository } from '@/repositories/cashRepository'
+import { crmRepository } from '@/repositories/crmRepository'
 import { usePOSStore, calcPOSTotals } from '@/store/posStore'
 import { DEMO_VARIANTS } from '@/data/demoSeed'
 import type { Product, RestaurantTable, Order, Payment } from '@/types'
 import type { PaymentMethod } from '@/types'
+import type { Customer } from '@/types/demo'
 
 const CATEGORY_ICONS: Record<string, string> = {
   Tacos: 'TC', Platillos: 'PL', Entradas: 'EN', Bebidas: 'BB', Cocteles: 'CK', Postres: 'PS',
@@ -60,6 +62,8 @@ export default function POSPage() {
   const [ticketChange, setTicketChange] = useState(0)
   const [ticketTableLabel, setTicketTableLabel] = useState('Mostrador')
   const [cashOpen, setCashOpen] = useState(false)
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [customerSearch, setCustomerSearch] = useState('')
 
   const cart = usePOSStore(s => s.cart)
   const tableId = usePOSStore(s => s.tableId)
@@ -70,6 +74,8 @@ export default function POSPage() {
   const promoCode = usePOSStore(s => s.promoCode)
   const existingOrderId = usePOSStore(s => s.existingOrderId)
   const existingOrderFolio = usePOSStore(s => s.existingOrderFolio)
+  const customerId = usePOSStore(s => s.customerId)
+  const customerName = usePOSStore(s => s.customerName)
   const addItem = usePOSStore(s => s.addItem)
   const updateQty = usePOSStore(s => s.updateQty)
   const updateNotes = usePOSStore(s => s.updateNotes)
@@ -77,11 +83,23 @@ export default function POSPage() {
   const setTable = usePOSStore(s => s.setTable)
   const setGuests = usePOSStore(s => s.setGuests)
   const setDiscount = usePOSStore(s => s.setDiscount)
+  const setCustomer = usePOSStore(s => s.setCustomer)
+
+  const filteredCustomers = useMemo(() => {
+    const q = customerSearch.trim().toLowerCase()
+    if (!q) return customers.slice(0, 8)
+    return customers.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.phone?.includes(q) ||
+      c.email?.toLowerCase().includes(q)
+    ).slice(0, 8)
+  }, [customers, customerSearch])
 
   useEffect(() => {
     if (!ctx) return
     catalogRepository.getProducts(ctx).then(setProducts)
     tableRepository.getTables(ctx).then(setTables)
+    crmRepository.getCustomers(ctx).then(setCustomers)
     refreshCashStatus()
   }, [ctx])
 
@@ -123,6 +141,7 @@ export default function POSPage() {
   const { subtotal, discount, tax, total } = calcPOSTotals(cart, taxRate, discountPercent, discountFixed)
   const change = payMethod === 'efectivo' ? Math.max(0, Number(cashReceived) - total) : 0
   const mixedValid = payMethod !== 'mixto' || (Number(mixedCash) + Number(mixedCard) >= total - 0.01)
+  const loyaltyPointsPreview = Math.floor(total / 10) * (new Date().getDay() === 2 ? 2 : 1)
 
   const handleProductClick = (p: Product) => {
     if (p.has_variants && DEMO_VARIANTS.some(v => v.product_id === p.id)) {
@@ -194,6 +213,11 @@ export default function POSPage() {
 
   const openPayModal = async () => {
     await refreshCashStatus()
+    if (ctx) {
+      const list = await crmRepository.getCustomers(ctx)
+      setCustomers(list)
+    }
+    setCustomerSearch('')
     setPayModal(true)
   }
 
@@ -217,6 +241,7 @@ export default function POSPage() {
         promoCode: promoCode || undefined,
         mixedCash: payMethod === 'mixto' ? Number(mixedCash) : undefined,
         mixedCard: payMethod === 'mixto' ? Number(mixedCard) : undefined,
+        customerId: customerId || undefined,
       }
       const { order, payment } = existingOrderId
         ? await orderRepository.completeOrderPayment(
@@ -226,11 +251,13 @@ export default function POSPage() {
               discount: payOptions.discount,
               mixedCash: payOptions.mixedCash,
               mixedCard: payOptions.mixedCard,
+              customerId: payOptions.customerId,
             }
           )
         : await orderRepository.createOrderWithPayment(
             ctx, cartLines(), methodMap[payMethod], payOptions
           )
+      const pointsMsg = customerId ? ` · +${loyaltyPointsPreview} pts lealtad` : ''
       setTicketTableLabel(tableNumber ? `Mesa ${tableNumber}` : 'Mostrador')
       setTicketOrder(order)
       setTicketPayment(payment)
@@ -241,7 +268,7 @@ export default function POSPage() {
       setCashReceived('')
       setMixedCash('')
       setMixedCard('')
-      toast(`✓ ${order.folio} — ${formatCurrency(order.total)}`, 'success')
+      toast(`✓ ${order.folio} — ${formatCurrency(order.total)}${pointsMsg}`, 'success')
     } catch {
       toast('Error al procesar', 'error')
     } finally {
@@ -348,6 +375,11 @@ export default function POSPage() {
             <span>{new Date().toLocaleString('es-MX')}</span>
             {tableNumber && <span className="text-brand-600 font-bold">M{tableNumber}</span>}
             <span className="flex items-center gap-1"><Users size={10} />{guests}</span>
+            {customerName && (
+              <span className="flex items-center gap-1 text-brand-600 font-bold">
+                <UserCircle size={10} />{customerName}
+              </span>
+            )}
           </div>
         </div>
 
@@ -498,6 +530,56 @@ export default function POSPage() {
               <span className="text-lg font-mono font-black text-ops-success">{formatCurrency(change)}</span>
             </div>
           )}
+
+          <div className="rounded-xl border border-command-border p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                <UserCircle size={14} /> Cliente CRM (lealtad)
+              </p>
+              {customerId && (
+                <button type="button" onClick={() => setCustomer(null, null)} className="text-slate-400 hover:text-ops-danger">
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            {customerId ? (
+              <div className="flex items-center justify-between bg-brand-50 rounded-lg px-3 py-2">
+                <span className="text-sm font-semibold text-brand-800">{customerName}</span>
+                <span className="text-xs font-mono text-brand-600">+{loyaltyPointsPreview} pts</span>
+              </div>
+            ) : (
+              <>
+                <Input
+                  placeholder="Buscar cliente por nombre o teléfono..."
+                  value={customerSearch}
+                  onChange={e => setCustomerSearch(e.target.value)}
+                  className="text-xs h-9"
+                />
+                {filteredCustomers.length > 0 ? (
+                  <div className="max-h-32 overflow-y-auto space-y-1">
+                    {filteredCustomers.map(c => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setCustomer(c.id, c.name)}
+                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-brand-50 border border-transparent hover:border-brand-200"
+                      >
+                        <p className="text-sm font-semibold text-slate-800">{c.name}</p>
+                        <p className="text-[10px] text-slate-500">{c.phone || c.email || 'Sin contacto'} · {c.points} pts</p>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500">
+                    {customers.length === 0 ? (
+                      <>Sin clientes — <Link to="/app/customers" className="text-brand-600 font-semibold hover:underline">crear en CRM</Link></>
+                    ) : 'Sin resultados'}
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+
           <Button className="w-full" size="lg" loading={loading} onClick={handlePay}
             disabled={!cashOpen || (payMethod === 'efectivo' && Number(cashReceived) < total) || !mixedValid}>
             Confirmar cobro

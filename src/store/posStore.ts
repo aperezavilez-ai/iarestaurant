@@ -23,9 +23,12 @@ interface POSState {
   promoCode: string | null
   existingOrderId: string | null
   existingOrderFolio: string | null
+  customerId: string | null
+  customerName: string | null
   setTable: (id: string | null, number: number | null) => void
   setGuests: (n: number) => void
   setDiscount: (percent: number, fixed: number, promo?: string | null) => void
+  setCustomer: (id: string | null, name: string | null) => void
   addItem: (item: Omit<POSCartItem, 'lineId' | 'quantity'> & { quantity?: number }) => void
   updateQty: (lineId: string, delta: number) => void
   updateNotes: (lineId: string, notes: string) => void
@@ -50,11 +53,14 @@ export const usePOSStore = create<POSState>()(
       promoCode: null,
       existingOrderId: null,
       existingOrderFolio: null,
+      customerId: null,
+      customerName: null,
 
       setTable: (id, number) => set({ tableId: id, tableNumber: number }),
       setGuests: (guests) => set({ guests: Math.max(1, guests) }),
       setDiscount: (discountPercent, discountFixed, promoCode = null) =>
         set({ discountPercent, discountFixed, promoCode }),
+      setCustomer: (customerId, customerName) => set({ customerId, customerName }),
 
       addItem: (item) => {
         const key = lineKey(item.product_id, item.variant_name, item.notes)
@@ -133,6 +139,8 @@ export const usePOSStore = create<POSState>()(
         promoCode: null,
         existingOrderId: null,
         existingOrderFolio: null,
+        customerId: null,
+        customerName: null,
       }),
     }),
     {
@@ -148,6 +156,8 @@ export const usePOSStore = create<POSState>()(
         promoCode: s.promoCode,
         existingOrderId: s.existingOrderId,
         existingOrderFolio: s.existingOrderFolio,
+        customerId: s.customerId,
+        customerName: s.customerName,
       }),
     }
   )

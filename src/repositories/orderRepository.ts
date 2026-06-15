@@ -194,6 +194,7 @@ export const orderRepository = {
       mixedCash?: number
       mixedCard?: number
       discount?: number
+      customerId?: string
     }
   ): Promise<{ order: Order; payment: Payment; payments?: Payment[] }> {
     const orders = await localDb.getOrders(ctx.tenantId, ctx.sucursalId)
@@ -288,6 +289,10 @@ export const orderRepository = {
           await localDb.enqueueSync({ table: 'payments', operation: 'insert', payload: p as never })
         }
       }
+    }
+
+    if (options?.customerId) {
+      await crmRepository.recordSale(ctx, options.customerId, total)
     }
 
     return { order: { ...order, items }, payment, payments }

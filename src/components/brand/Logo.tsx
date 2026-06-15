@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { LogoMark } from '@/components/brand/LogoMark'
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg'
@@ -17,13 +18,8 @@ export function Logo({ size = 'md', showTagline = false, className, light }: Log
 
   return (
     <div className={cn('flex items-center gap-3', className)}>
-      <div className={cn(s.icon, 'relative rounded-xl gradient-amber flex items-center justify-center shadow-glow shrink-0')}>
-        <svg viewBox="0 0 24 24" className="w-[55%] h-[55%]" fill="none">
-          <circle cx="12" cy="12" r="8" stroke="#FFFFFF" strokeWidth="1.5" />
-          <circle cx="12" cy="12" r="3" fill="#FFFFFF" />
-          <circle cx="18" cy="6" r="2" fill="#FEF3C7" />
-          <line x1="14" y1="10" x2="17" y2="7" stroke="#FEF3C7" strokeWidth="1" />
-        </svg>
+      <div className={cn(s.icon, 'rounded-xl shadow-glow shrink-0 overflow-hidden')}>
+        <LogoMark className="w-full h-full" />
       </div>
       <div className="min-w-0">
         <p className={cn(s.title, 'font-black tracking-tight leading-none')}>

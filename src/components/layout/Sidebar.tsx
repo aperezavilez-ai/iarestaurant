@@ -1,9 +1,10 @@
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/authStore'
 import { authRepository } from '@/repositories/authRepository'
+import { LogoMark } from '@/components/brand/LogoMark'
 import { NavLink } from 'react-router-dom'
 import {
-  LayoutDashboard, ShoppingCart, UtensilsCrossed, Grid3X3,
+  LayoutDashboard, ShoppingCart, Grid3X3,
   Users, Settings, LogOut, ChefHat, CreditCard, BarChart3,
   Building2, Package, ChevronRight
 } from 'lucide-react'
@@ -37,8 +38,8 @@ export function Sidebar() {
       {/* Logo */}
       <div className="px-5 py-6 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg gradient-gold flex items-center justify-center shrink-0">
-            <UtensilsCrossed size={18} className="text-white" />
+          <div className="w-9 h-9 rounded-lg overflow-hidden shadow-glow shrink-0">
+            <LogoMark className="w-full h-full" />
           </div>
           <div className="min-w-0">
             <p className="font-bold text-sm leading-tight truncate">{tenant?.name || 'IA-RESTAURANT'}</p>

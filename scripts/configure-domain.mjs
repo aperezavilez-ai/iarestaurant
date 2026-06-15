@@ -10,6 +10,19 @@ import { loadEnv } from './load-env.mjs'
 loadEnv()
 
 const DOMAIN = (process.argv[2] || 'https://www.iarestaurant.mx').replace(/\/$/, '')
+const APEX_DOMAIN = DOMAIN.includes('://www.')
+  ? DOMAIN.replace('://www.', '://')
+  : DOMAIN.replace('://', '://www.')
+
+const ALLOW_LIST = [
+  `${DOMAIN}/**`,
+  `${APEX_DOMAIN}/**`,
+  'http://localhost:5173/**',
+  'http://127.0.0.1:5173/**',
+  'https://ia-restaurant.vercel.app/**',
+  'https://*.vercel.app/**',
+].join(',')
+
 const PROJECT_REF = process.env.VITE_SUPABASE_URL?.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1]
 const TOKEN = process.env.SUPABASE_ACCESS_TOKEN
 
@@ -17,15 +30,6 @@ if (!PROJECT_REF || !TOKEN) {
   console.error('Falta VITE_SUPABASE_URL o SUPABASE_ACCESS_TOKEN en .env')
   process.exit(1)
 }
-
-const ALLOW_LIST = [
-  `${DOMAIN}/**`,
-  `${DOMAIN.replace('://', '://www.')}/**`,
-  'http://localhost:5173/**',
-  'http://127.0.0.1:5173/**',
-  'https://ia-restaurant.vercel.app/**',
-  'https://*.vercel.app/**',
-].join(',')
 
 async function main() {
   const headers = {

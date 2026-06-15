@@ -39,6 +39,7 @@ export const qrFlowService = {
       unit_price: item.unit_price,
       subtotal: item.unit_price * item.quantity,
       status: 'pendiente' as const,
+      notes: item.notes,
     }))
 
     await localDb.saveOrder({ ...order, items }, items)

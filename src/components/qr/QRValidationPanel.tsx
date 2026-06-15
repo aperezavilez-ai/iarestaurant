@@ -53,7 +53,10 @@ export function QRValidationPanel() {
             </div>
             <ul className="text-xs text-slate-600 space-y-1 mb-3">
               {order.items.map((item, i) => (
-                <li key={i}>{item.quantity}× {item.product_name} — {formatCurrency(item.unit_price * item.quantity)}</li>
+                <li key={i}>
+                  {item.quantity}× {item.product_name} — {formatCurrency(item.unit_price * item.quantity)}
+                  {item.notes && <span className="text-ops-warning block">↳ {item.notes}</span>}
+                </li>
               ))}
             </ul>
             <div className="flex gap-2">

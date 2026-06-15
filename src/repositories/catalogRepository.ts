@@ -30,6 +30,7 @@ export const catalogRepository = {
       description: data.description,
       price: Number(data.price) || 0,
       cost: Number(data.cost) || 0,
+      image_url: data.image_url,
       is_active: true,
       has_variants: false,
       preparation_time: data.preparation_time,

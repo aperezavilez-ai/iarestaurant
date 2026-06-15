@@ -4,6 +4,7 @@ import { Card, CardBody } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { formatCurrency } from '@/lib/utils'
+import { getProductImageUrl } from '@/lib/productImages'
 import { useTenantContext } from '@/hooks/useTenantContext'
 import { useAuthStore } from '@/store/authStore'
 import { catalogRepository } from '@/repositories/catalogRepository'
@@ -86,13 +87,23 @@ export default function GuestMenuPreviewPage() {
                       {items.map((p) => (
                         <div
                           key={p.id}
-                          className="product-tile rounded-xl p-3 bg-white border border-command-border"
+                          className="product-tile rounded-xl overflow-hidden bg-white border border-command-border"
                         >
-                          <p className="text-sm font-bold text-slate-800 leading-tight">{p.name}</p>
-                          {p.description && (
-                            <p className="text-[10px] text-slate-500 mt-1 line-clamp-2">{p.description}</p>
-                          )}
-                          <p className="text-brand-600 font-mono font-bold text-sm mt-2">{formatCurrency(p.price)}</p>
+                          <div className="aspect-[4/3] bg-slate-100">
+                            <img
+                              src={getProductImageUrl(p)}
+                              alt=""
+                              loading="lazy"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="p-3">
+                            <p className="text-sm font-bold text-slate-800 leading-tight">{p.name}</p>
+                            {p.description && (
+                              <p className="text-[10px] text-slate-500 mt-1 line-clamp-2">{p.description}</p>
+                            )}
+                            <p className="text-brand-600 font-mono font-bold text-sm mt-2">{formatCurrency(p.price)}</p>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -107,9 +118,14 @@ export default function GuestMenuPreviewPage() {
                     {products
                       .filter((p) => !categories.some((c) => c.id === p.category_id))
                       .map((p) => (
-                        <div key={p.id} className="product-tile rounded-xl p-3 bg-white border border-command-border">
-                          <p className="text-sm font-bold text-slate-800">{p.name}</p>
-                          <p className="text-brand-600 font-mono font-bold text-sm mt-2">{formatCurrency(p.price)}</p>
+                        <div key={p.id} className="product-tile rounded-xl overflow-hidden bg-white border border-command-border">
+                          <div className="aspect-[4/3] bg-slate-100">
+                            <img src={getProductImageUrl(p)} alt="" loading="lazy" className="w-full h-full object-cover" />
+                          </div>
+                          <div className="p-3">
+                            <p className="text-sm font-bold text-slate-800">{p.name}</p>
+                            <p className="text-brand-600 font-mono font-bold text-sm mt-2">{formatCurrency(p.price)}</p>
+                          </div>
                         </div>
                       ))}
                   </div>

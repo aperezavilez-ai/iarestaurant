@@ -13,6 +13,7 @@ export interface QROrderItem {
   product_name: string
   quantity: number
   unit_price: number
+  notes?: string
 }
 
 export interface QROrder {

@@ -12,6 +12,7 @@ import type {
   CashRegister,
 } from '@/types'
 import { DEMO_ORG_ID, DEMO_SUCURSAL_ID, DEMO_TENANT_ID } from '@/lib/config'
+import { getProductImageUrl } from '@/lib/productImages'
 
 const T = DEMO_TENANT_ID
 const S = DEMO_SUCURSAL_ID
@@ -93,7 +94,7 @@ export const SEED_PRODUCTS: Product[] = [
   { id: 'p12', tenant_id: T, sucursal_id: S, category_id: 'cat-cocteles', name: 'Michelada', price: 65, cost: 22, is_active: true, has_variants: false, preparation_time: 4 },
   { id: 'p13', tenant_id: T, sucursal_id: S, category_id: 'cat-postres', name: 'Flan Napolitano', price: 45, cost: 12, is_active: true, has_variants: false, preparation_time: 3 },
   { id: 'p14', tenant_id: T, sucursal_id: S, category_id: 'cat-postres', name: 'Churros', price: 50, cost: 14, is_active: false, has_variants: false, preparation_time: 6 },
-]
+].map((p) => ({ ...p, image_url: getProductImageUrl(p) }))
 
 export const SEED_AREAS: TableArea[] = [
   { id: 'area1', tenant_id: T, sucursal_id: S, name: 'Salón Principal', color: '#f59000', sort_order: 1, is_active: true },

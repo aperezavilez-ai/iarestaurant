@@ -40,7 +40,7 @@ const PAGE_META: Record<string, { title: string; zone: string }> = {
 
 export function CommandShell() {
   const location = useLocation()
-  const { user, tenant, sucursal, logout } = useAuthStore()
+  const { user, tenant, logout } = useAuthStore()
   const { stats, insights } = useLiveOps()
   const [copilotOpen, setCopilotOpen] = useState(true)
 
@@ -78,12 +78,6 @@ export function CommandShell() {
         <div className="px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <Logo size="sm" showTagline />
-            {tenant && (
-              <div className="hidden md:block border-l border-command-border pl-3 min-w-0">
-                <p className="font-black text-slate-800 text-sm leading-tight truncate">{tenant.name}</p>
-                {sucursal && <p className="text-[10px] text-slate-500 font-mono truncate">{sucursal.name}</p>}
-              </div>
-            )}
           </div>
           <div className="hidden lg:flex items-center gap-3 text-xs">
             {stats && (
@@ -106,8 +100,15 @@ export function CommandShell() {
               )}
             </button>
             <div className="flex items-center gap-2 pl-2 border-l border-command-border">
-              <div className="w-8 h-8 rounded-full gradient-amber flex items-center justify-center text-white font-bold text-xs shadow-glow">
-                {user?.full_name?.[0]?.toUpperCase()}
+              <div className="flex flex-col items-center gap-1 min-w-0 max-w-[120px]">
+                <div className="w-8 h-8 rounded-full gradient-amber flex items-center justify-center text-white font-bold text-xs shadow-glow shrink-0">
+                  {user?.full_name?.[0]?.toUpperCase()}
+                </div>
+                {tenant && (
+                  <p className="text-[10px] font-bold text-slate-700 text-center leading-tight truncate w-full" title={tenant.name}>
+                    {tenant.name}
+                  </p>
+                )}
               </div>
               <button
                 onClick={() => { authRepository.signOut(); logout() }}

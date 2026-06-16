@@ -28,6 +28,7 @@ export interface Tenant {
   max_usuarios: number
   max_mesas: number
   max_productos: number
+  max_devices?: number
   is_active: boolean
   created_at: string
 }

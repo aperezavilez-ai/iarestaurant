@@ -3,6 +3,7 @@ import { useAuthStore } from '@/store/authStore'
 import { AuthInit } from '@/components/AuthInit'
 import { RealtimeBootstrap } from '@/components/RealtimeBootstrap'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { DeviceGate } from '@/components/security/DeviceGate'
 import { ToastContainer } from '@/components/ui/Toast'
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/auth/RegisterPage'
@@ -37,6 +38,7 @@ import IntegrationsPage from '@/pages/IntegrationsPage'
 import NotificationsPage from '@/pages/NotificationsPage'
 import FinancePage from '@/pages/FinancePage'
 import SubscriptionsPage from '@/pages/SubscriptionsPage'
+import SaasAdminPage from '@/pages/SaasAdminPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
@@ -56,7 +58,7 @@ export default function App() {
           <Route path="/comensal" element={<ComensalPWA />} />
           <Route path="/mesero" element={<MeseroPWA />} />
           <Route path="/caja" element={<CajaPWA />} />
-          <Route path="/app" element={<PrivateRoute><AppLayout /></PrivateRoute>}>
+          <Route path="/app" element={<PrivateRoute><DeviceGate><AppLayout /></DeviceGate></PrivateRoute>}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="modules" element={<ModulesHubPage />} />
@@ -88,6 +90,7 @@ export default function App() {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="integrations" element={<IntegrationsPage />} />
             <Route path="subscriptions" element={<SubscriptionsPage />} />
+            <Route path="saas" element={<SaasAdminPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

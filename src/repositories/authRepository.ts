@@ -1,5 +1,7 @@
 import { authService } from '@/services/authService'
 import { tenantService } from '@/services/tenantService'
+import { securityRepository } from '@/repositories/securityRepository'
+import { SecurityAccessError } from '@/types/security'
 import { isSupabaseConfigured } from '@/lib/config'
 import { localDb } from '@/lib/localDb'
 import type { User, Tenant, Sucursal } from '@/types'
@@ -87,6 +89,12 @@ export const authRepository = {
       if (!profile) throw new Error('Perfil no encontrado en el sistema')
       const session = await buildSession(profile)
       if (!session) throw new Error('Tenant o sucursal no encontrados')
+      try {
+        await securityRepository.enforceDeviceAccess(session)
+      } catch (secErr) {
+        if (secErr instanceof SecurityAccessError) throw secErr
+        console.warn('[security] verificación de equipo omitida:', secErr)
+      }
       return session
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)

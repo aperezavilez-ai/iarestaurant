@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { Logo } from '@/components/brand/Logo'
 import { useAuthStore } from '@/store/authStore'
 import { authRepository } from '@/repositories/authRepository'
+import { SecurityAccessError } from '@/types/security'
 import { bootstrapService } from '@/services/bootstrapService'
 import { isSupabaseConfigured } from '@/lib/config'
 import { toast } from '@/components/ui/Toast'
@@ -49,6 +50,11 @@ export default function LoginPage() {
         })
       }
     } catch (err) {
+      if (err instanceof SecurityAccessError) {
+        setLoginError(err.message)
+        toast(err.message, 'error')
+        return
+      }
       const msg = err instanceof Error ? err.message : 'Credenciales incorrectas'
       setLoginError(msg)
       toast(msg, 'error')

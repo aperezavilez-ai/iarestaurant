@@ -12,6 +12,7 @@ import { tenantRepository } from '@/repositories/tenantRepository'
 import { catalogRepository } from '@/repositories/catalogRepository'
 import { tableRepository } from '@/repositories/tableRepository'
 import { whatsappService } from '@/services/whatsappService'
+import { AuthorizedDevicesPanel } from '@/components/security/AuthorizedDevicesPanel'
 import type { Organization, WhatsAppConfig } from '@/types'
 
 export default function SettingsPage() {
@@ -315,6 +316,8 @@ export default function SettingsPage() {
           </div>
         </CardBody>
       </Card>
+
+      <AuthorizedDevicesPanel />
     </div>
   )
 }

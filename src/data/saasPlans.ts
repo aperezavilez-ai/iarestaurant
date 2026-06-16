@@ -7,6 +7,7 @@ export interface SaasPlan {
   maxBranches: number
   maxTables: number
   maxProducts: number
+  maxDevices: number
   features: string[]
 }
 
@@ -20,6 +21,7 @@ export const SAAS_PLANS: SaasPlan[] = [
     maxBranches: 1,
     maxTables: 20,
     maxProducts: 50,
+    maxDevices: 3,
     features: ['POS', 'Mesas', 'Cocina KDS', 'Reportes básicos'],
   },
   {
@@ -31,6 +33,7 @@ export const SAAS_PLANS: SaasPlan[] = [
     maxBranches: 5,
     maxTables: 50,
     maxProducts: 200,
+    maxDevices: 8,
     features: ['Todo Básico', 'Inventario', 'CRM', 'Menú QR', 'Multi sucursal'],
   },
   {
@@ -42,6 +45,7 @@ export const SAAS_PLANS: SaasPlan[] = [
     maxBranches: 50,
     maxTables: 500,
     maxProducts: 5000,
+    maxDevices: 25,
     features: ['Todo Profesional', 'CFDI', 'Integraciones', 'API', 'Soporte prioritario'],
   },
 ]

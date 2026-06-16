@@ -325,7 +325,7 @@ export default function KitchenPage() {
       <div className="flex gap-2 overflow-x-auto pb-1 shrink-0">
         {KITCHEN_CENTERS.map(c => (
           <button key={c.id} onClick={() => setCenter(c.id)}
-            className={cn('px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap min-h-[40px] border transition-all',
+            className={cn('px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap min-h-[44px] border transition-all',
               center === c.id ? 'bg-brand-100 text-brand-700 border-brand-400' : 'bg-white text-slate-600 border-command-border')}>
             {c.label}
           </button>

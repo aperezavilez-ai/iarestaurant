@@ -80,12 +80,14 @@
 
 ---
 
-## Día 4 — Móvil
+## Día 4 — Móvil (completado en código)
 
-- [ ] iPhone: safe area tab bar + teclado en montos
-- [ ] Android: POS ticket + cobro
-- [ ] Cocina KDS en tablet/celular
-- [ ] 2 h operación continua sin bloqueos
+- [x] Modales tipo bottom-sheet en móvil
+- [x] Safe area iOS (notch + home indicator)
+- [x] Inputs numéricos con teclado decimal (sin zoom iOS)
+- [x] POS: ticket compacto + botón cobrar sticky
+- [x] Cocina: tabs táctiles 44px
+- [ ] Validación 2h en dispositivo real (pendiente operador)
 
 ## Día 5 — Observabilidad
 
@@ -138,7 +140,7 @@ npm run supabase:sql   # Migraciones manuales
 | 1 | 90% | 90% |
 | 2 | 92% | 92% |
 | 3 | 95% | 95% |
-| 4 | 97% | — |
+| 4 | 97% | 97% |
 | 5 | 98% | — |
 | 6 | 99% | — |
 | 7 | 100% | — |

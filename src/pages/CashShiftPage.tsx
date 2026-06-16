@@ -172,7 +172,7 @@ export default function CashShiftPage() {
   })
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-6 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <PageBack to="/app/cash" label="Caja" />
 
       <Card>

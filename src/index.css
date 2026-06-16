@@ -77,11 +77,21 @@
   .mobile-tab-bar {
     padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
   }
-  .mobile-tab-active {
-    animation: mobile-tab-pop 0.24s cubic-bezier(0.34, 1.4, 0.64, 1);
+  .mobile-modal-sheet {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
   }
   @keyframes mobile-tab-pop {
     0% { transform: scale(0.88); opacity: 0.7; }
     100% { transform: scale(1); opacity: 1; }
+  }
+  .mobile-tab-active {
+    animation: mobile-tab-pop 0.24s cubic-bezier(0.34, 1.4, 0.64, 1);
   }
 }

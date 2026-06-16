@@ -60,7 +60,7 @@ export function CommandShell() {
     return (
       <div className="h-screen bg-orange-50 overflow-hidden flex flex-col">
         <ShiftOpenGate open={showShiftGate} staleRegister={stale ? openRegister : null} onOpened={refresh} />
-        <header className="h-12 px-3 sm:px-4 flex items-center justify-between gap-2 border-b border-orange-200 bg-gradient-to-r from-orange-500 to-brand-500 shrink-0">
+      <header className="h-12 px-3 sm:px-4 flex items-center justify-between gap-2 border-b border-orange-200 bg-gradient-to-r from-orange-500 to-brand-500 shrink-0 pt-[env(safe-area-inset-top)]">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             {backTarget && <PageBack to={backTarget.to} label={backTarget.label} light />}
             <Logo size="sm" light className="hidden sm:flex" />
@@ -72,7 +72,7 @@ export function CommandShell() {
           <CommandNav compact light />
           <span className="text-[10px] sm:text-xs font-mono text-white/80 truncate max-w-[80px] sm:max-w-none">{tenant?.name}</span>
         </header>
-        <main className="flex-1 overflow-hidden p-4 bg-orange-50">
+        <main className="flex-1 overflow-hidden p-2 sm:p-4 bg-orange-50 pb-safe">
           <Outlet />
         </main>
       </div>

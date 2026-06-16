@@ -387,7 +387,7 @@ export default function POSPage() {
         </div>
       </div>
 
-      <div className="w-full lg:w-[320px] xl:w-[360px] flex flex-col bg-white border-t lg:border-t-0 lg:border-l border-command-border shrink-0 min-h-0 h-[48vh] lg:h-full shadow-panel">
+      <div className="w-full lg:w-[320px] xl:w-[360px] flex flex-col bg-white border-t lg:border-t-0 lg:border-l border-command-border shrink-0 min-h-0 max-h-[46dvh] lg:max-h-none lg:h-full shadow-panel">
         <div className="p-4 border-b border-command-border bg-gradient-to-r from-brand-50 to-orange-50 shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -456,7 +456,7 @@ export default function POSPage() {
           ))}
         </div>
 
-        <div className="border-t border-command-border bg-brand-50/50 p-3 space-y-2 shrink-0">
+        <div className="border-t border-command-border bg-brand-50/50 p-3 space-y-2 shrink-0 sticky bottom-0 z-10 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:pb-3">
           <div className="flex justify-between text-xs font-mono text-slate-600"><span>SUBTOTAL</span><span>{formatCurrency(subtotal)}</span></div>
           {discount > 0 && (
             <div className="flex justify-between text-xs font-mono text-ops-success"><span>DESCUENTO</span><span>−{formatCurrency(discount)}</span></div>

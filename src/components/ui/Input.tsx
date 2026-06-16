@@ -8,11 +8,14 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   onEndIconClick?: () => void
   endIconLabel?: string
   dark?: boolean
+  /** Teclado numérico en móvil + evita zoom iOS */
+  numeric?: boolean
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, label, icon, endIcon, onEndIconClick, endIconLabel, dark, id, ...props }, ref) => {
+  ({ className, type, label, icon, endIcon, onEndIconClick, endIconLabel, dark, id, numeric, ...props }, ref) => {
     const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined)
+    const isNumeric = numeric || type === 'number'
     const field = (
       <div className="relative">
         {icon && (
@@ -23,8 +26,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           id={inputId}
           type={type}
+          inputMode={isNumeric ? 'decimal' : props.inputMode}
+          enterKeyHint={isNumeric ? 'done' : props.enterKeyHint}
           className={cn(
-            'flex h-11 w-full rounded-xl px-3 py-2 text-sm transition-colors',
+            'flex h-11 w-full rounded-xl px-3 py-2 transition-colors',
+            isNumeric ? 'text-base sm:text-sm ticket-mono' : 'text-sm',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50',
             'disabled:cursor-not-allowed disabled:opacity-50',
             dark

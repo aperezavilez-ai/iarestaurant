@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { LogOut, Bell } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
-import { CommandNav } from './CommandNav'
+import { CommandNav, CommandMobileNav } from './CommandNav'
 import { AICopilot } from '@/components/ai/AICopilot'
 import { useAuthStore } from '@/store/authStore'
 import { authRepository } from '@/repositories/authRepository'
@@ -120,7 +120,7 @@ export function CommandShell() {
             </div>
           </div>
         </div>
-        <div className="px-2 sm:px-4 pb-2 sm:pb-3">
+        <div className="hidden sm:block px-2 sm:px-4 pb-2 sm:pb-3">
           <CommandNav compact />
         </div>
       </header>
@@ -146,7 +146,7 @@ export function CommandShell() {
       <div className="flex-1 flex overflow-hidden min-h-0">
         <main className={cn(
           'flex-1 min-h-0',
-          isPOS ? 'p-0 overflow-hidden' : 'p-3 sm:p-6 overflow-y-auto'
+          isPOS ? 'p-0 overflow-hidden' : 'p-3 sm:p-6 overflow-y-auto pb-20 sm:pb-6'
         )}>
           <Outlet />
         </main>
@@ -157,6 +157,9 @@ export function CommandShell() {
               : <AICopilot insights={insights} collapsed onToggle={() => setCopilotOpen(true)} />
           )}
         </div>
+      </div>
+      <div className={cn('sm:hidden', isPOS && 'hidden')}>
+        <CommandMobileNav />
       </div>
     </div>
   )

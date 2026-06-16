@@ -48,3 +48,41 @@ export function CommandNav({ compact, light }: { compact?: boolean; light?: bool
     </nav>
   )
 }
+
+const MOBILE_PRIMARY_PATHS = new Set([
+  '/app/dashboard',
+  '/app/pos',
+  '/app/tables',
+  '/app/kitchen',
+  '/app/cash',
+  '/app/modules',
+])
+
+export function CommandMobileNav() {
+  const { user } = useAuthStore()
+  const visible = NAV.filter(
+    (i) => user?.role && i.roles.includes(user.role) && MOBILE_PRIMARY_PATHS.has(i.path)
+  )
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-command-border bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
+      <div className="mx-auto max-w-screen-sm px-2 py-1.5 grid grid-cols-6 gap-1">
+        {visible.slice(0, 6).map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) => cn(
+              'flex flex-col items-center justify-center gap-0.5 rounded-lg py-1 text-[10px] font-semibold min-h-[52px] transition-all',
+              isActive
+                ? 'text-brand-700 bg-brand-50'
+                : 'text-slate-500 hover:text-brand-600 hover:bg-brand-50/60'
+            )}
+          >
+            <item.icon size={15} />
+            <span className="truncate max-w-full">{item.label}</span>
+          </NavLink>
+        ))}
+      </div>
+    </nav>
+  )
+}

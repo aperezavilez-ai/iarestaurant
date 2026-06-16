@@ -13,10 +13,8 @@ END WHERE max_devices IS NULL;
 
 ALTER TABLE tenants ALTER COLUMN max_devices SET DEFAULT 3;
 
--- Un solo admin_restaurant activo por tenant
-CREATE UNIQUE INDEX IF NOT EXISTS users_one_admin_restaurant_per_tenant
-  ON users (tenant_id)
-  WHERE role = 'admin_restaurant' AND is_active = true;
+-- Nota: un solo admin_restaurant por tenant se valida en alta de personal (API staff).
+-- No índice único aquí: puede haber datos legacy duplicados en tenants existentes.
 
 CREATE TABLE IF NOT EXISTS tenant_devices (
   id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

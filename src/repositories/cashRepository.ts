@@ -1,7 +1,10 @@
 import { cashService } from '@/services/cashService'
+import { paymentService } from '@/services/paymentService'
 import { localDb } from '@/lib/localDb'
 import { isSupabaseConfigured } from '@/lib/config'
+import { computeShiftSummary, type ShiftSummary } from '@/lib/cashShift'
 import { isOnline } from './base'
+import { orderRepository } from './orderRepository'
 import { buildSeedCashRegister } from '@/data/seed'
 import type { CashRegister } from '@/types'
 import type { TenantContext } from '@/types/context'
@@ -73,5 +76,22 @@ export const cashRepository = {
       }
     }
     return closed
+  },
+
+  async getShiftSummary(ctx: TenantContext, openedAt: string): Promise<ShiftSummary> {
+    const orders = await orderRepository.getAllOrders(ctx)
+    let payments = await localDb.getPayments(ctx.tenantId)
+    if (isSupabaseConfigured() && isOnline()) {
+      try {
+        const remote = await paymentService.getPaymentsByTenant(ctx.tenantId)
+        const localIds = new Set(payments.map((p) => p.id))
+        for (const p of remote) {
+          if (!localIds.has(p.id)) payments.push(p)
+        }
+      } catch {
+        /* local-first */
+      }
+    }
+    return computeShiftSummary(orders, payments, openedAt)
   },
 }

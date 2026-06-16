@@ -17,6 +17,7 @@ import { MenuLayout } from '@/components/menu/MenuLayout'
 import ReportsPage from '@/pages/ReportsPage'
 import SettingsPage from '@/pages/SettingsPage'
 import CashPage from '@/pages/CashPage'
+import CashShiftPage from '@/pages/CashShiftPage'
 import PaymentGatewaysPage from '@/pages/PaymentGatewaysPage'
 import UsersPage from '@/pages/UsersPage'
 import BranchesPage from '@/pages/BranchesPage'
@@ -68,6 +69,7 @@ export default function App() {
               <Route path="comensal" element={<GuestMenuPreviewPage />} />
             </Route>
             <Route path="cash" element={<CashPage />} />
+            <Route path="cash/shift" element={<CashShiftPage />} />
             <Route path="payment-gateways" element={<PaymentGatewaysPage />} />
             <Route path="delivery" element={<DeliveryPage />} />
             <Route path="reservations" element={<ReservationsPage />} />

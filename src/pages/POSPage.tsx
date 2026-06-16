@@ -207,19 +207,11 @@ export default function POSPage() {
     return r
   }
 
-  const handleOpenCash = async (amount = 2000) => {
-    if (!ctx) return
-    setLoading(true)
-    try {
-      await cashRepository.openRegister(ctx, amount)
-      await refreshCashStatus()
-      toast('Caja abierta — ya puedes cobrar', 'success')
-    } catch (e) {
-      toast(e instanceof Error ? e.message : 'No se pudo abrir la caja', 'error')
-    } finally {
-      setLoading(false)
-    }
-  }
+  useEffect(() => {
+    const onFocus = () => { refreshCashStatus() }
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [ctx])
 
   const openPayModal = async () => {
     await refreshCashStatus()
@@ -338,7 +330,9 @@ export default function POSPage() {
             {tableNumber ? `Mesa ${tableNumber}` : 'Mostrador'}
           </button>
           {!cashOpen && (
-            <Badge variant="danger" className="self-center">Caja cerrada</Badge>
+            <Link to="/app/cash/shift">
+              <Badge variant="danger" className="self-center cursor-pointer hover:opacity-90">Caja cerrada</Badge>
+            </Link>
           )}
         </div>
 
@@ -474,10 +468,22 @@ export default function POSPage() {
                 <ChefHat size={16} /> Cocina
               </Button>
             )}
-            <Button size="md" className={cn('h-11', existingOrderId && 'col-span-2')} disabled={!cart.length} onClick={openPayModal}>
+            <Button
+              size="md"
+              className={cn('h-11', existingOrderId && 'col-span-2')}
+              disabled={!cart.length || !cashOpen}
+              onClick={openPayModal}
+            >
               <CreditCard size={16} /> {existingOrderId ? 'Cobrar cuenta' : 'Cobrar'}
             </Button>
           </div>
+          {!cashOpen && cart.length > 0 && (
+            <Link to="/app/cash/shift" className="block pt-1">
+              <Button variant="outline" size="sm" className="w-full">
+                <Unlock size={14} /> Abrir turno de caja para cobrar
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -524,11 +530,13 @@ export default function POSPage() {
         <div className="p-5 space-y-4">
           {!cashOpen && (
             <div className="rounded-xl border border-ops-danger/40 bg-red-50 p-4 space-y-3">
-              <p className="text-sm font-semibold text-ops-danger">Caja cerrada</p>
-              <p className="text-xs text-slate-600">Debes abrir la caja antes de cobrar.</p>
-              <Button className="w-full" loading={loading} onClick={() => handleOpenCash(2000)}>
-                <Unlock size={16} /> Abrir caja con $2,000
-              </Button>
+              <p className="text-sm font-semibold text-ops-danger">Turno de caja cerrado</p>
+              <p className="text-xs text-slate-600">Abre el turno con fondo inicial antes de cobrar.</p>
+              <Link to="/app/cash/shift">
+                <Button className="w-full" variant="outline">
+                  <Unlock size={16} /> Ir a apertura de turno
+                </Button>
+              </Link>
             </div>
           )}
           <div className="bg-brand-50 border border-brand-200 rounded-2xl p-5 text-center">

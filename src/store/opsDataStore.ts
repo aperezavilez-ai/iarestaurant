@@ -51,8 +51,9 @@ interface OpsDataState {
   addInvoice: (inv: Omit<Invoice, 'id' | 'tenant_id' | 'folio' | 'created_at' | 'status'> & { status?: Invoice['status'] }) => Invoice
   updateInvoice: (id: string, patch: Partial<Invoice>) => void
   nextInvoiceFolio: () => string
-  addCashMovement: (type: CashMovement['type'], amount: number, note: string) => CashMovement
+  addCashMovement: (type: CashMovement['type'], amount: number, note: string, registerId?: string) => CashMovement
   addPartialCut: (cut: Omit<PartialCashCut, 'id' | 'created_at'>) => PartialCashCut
+  clearShiftSession: () => void
 }
 
 const seedReservations: Reservation[] = []
@@ -234,16 +235,17 @@ export const useOpsDataStore = create<OpsDataState>()(
         }))
       },
 
-      addCashMovement: (type, amount, note) => {
+      addCashMovement: (type, amount, note, registerId) => {
         const entry: CashMovement = {
           id: crypto.randomUUID(),
           tenant_id: currentTenantId(),
+          register_id: registerId,
           type,
           amount,
           note,
           created_at: new Date().toISOString(),
         }
-        set(s => ({ cashMovements: [entry, ...s.cashMovements].slice(0, 30) }))
+        set(s => ({ cashMovements: [entry, ...s.cashMovements].slice(0, 50) }))
         return entry
       },
 
@@ -255,6 +257,10 @@ export const useOpsDataStore = create<OpsDataState>()(
         }
         set(s => ({ partialCuts: [entry, ...s.partialCuts].slice(0, 20) }))
         return entry
+      },
+
+      clearShiftSession: () => {
+        set({ cashMovements: [], partialCuts: [] })
       },
 
       updatePurchaseStatus: (id, status) => {

@@ -59,6 +59,7 @@ export function PwaBackLink({ className, light }: { className?: string; light?: 
 
 export function getPageBackTarget(pathname: string): { to: string; label: string } | null {
   if (pathname === '/app/dashboard' || pathname === '/app/modules') return null
+  if (pathname === '/app/cash/shift') return { to: '/app/cash', label: 'Caja' }
   if (MAIN_APP_ROUTES.has(pathname)) {
     return { to: '/app/dashboard', label: 'Centro de mando' }
   }

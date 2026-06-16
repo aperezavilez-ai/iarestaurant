@@ -124,6 +124,7 @@ export interface StockMovement {
 export interface CashMovement {
   id: string
   tenant_id: string
+  register_id?: string
   type: 'entrada' | 'salida'
   amount: number
   note: string

@@ -19,6 +19,7 @@ import { catalogRepository } from '@/repositories/catalogRepository'
 import { orderRepository } from '@/repositories/orderRepository'
 import { tableRepository } from '@/repositories/tableRepository'
 import { cashRepository } from '@/repositories/cashRepository'
+import { onShiftChanged } from '@/lib/shiftEvents'
 import { crmRepository } from '@/repositories/crmRepository'
 import { createPaymentLink } from '@/services/paymentLinkService'
 import { usePOSStore, calcPOSTotals } from '@/store/posStore'
@@ -212,6 +213,8 @@ export default function POSPage() {
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
   }, [ctx])
+
+  useEffect(() => onShiftChanged(() => { refreshCashStatus() }), [ctx])
 
   const openPayModal = async () => {
     await refreshCashStatus()

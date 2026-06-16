@@ -6,6 +6,7 @@ import { computeShiftSummary, isShiftStale, type ShiftSummary } from '@/lib/cash
 import { isOnline } from './base'
 import { orderRepository } from './orderRepository'
 import { buildSeedCashRegister } from '@/data/seed'
+import { notifyShiftChanged } from '@/lib/shiftEvents'
 import type { CashRegister } from '@/types'
 import type { TenantContext } from '@/types/context'
 
@@ -47,7 +48,12 @@ export const cashRepository = {
     openedAt?: string
   ): Promise<CashRegister> {
     const existing = await this.getOpenRegister(ctx)
-    if (existing) throw new Error('Ya hay una caja abierta')
+    if (existing) {
+      if (this.isShiftStale(existing)) {
+        throw new Error('Hay un turno anterior sin cerrar. Ve a Caja → Turno y haz Corte Z.')
+      }
+      throw new Error('Ya hay una caja abierta')
+    }
 
     const register: CashRegister = {
       ...buildSeedCashRegister(ctx.userId),
@@ -70,6 +76,7 @@ export const cashRepository = {
         })
       }
     }
+    notifyShiftChanged()
     return register
   },
 
@@ -102,6 +109,7 @@ export const cashRepository = {
         })
       }
     }
+    notifyShiftChanged()
     return closed
   },
 

@@ -46,10 +46,12 @@ export function CommandShell() {
   const { user, tenant, logout } = useAuthStore()
   const { stats, insights } = useLiveOps()
   const [copilotOpen, setCopilotOpen] = useState(true)
-  const { blocked, stale, register: openRegister, refresh } = useCashShiftGate()
+  const { blocked, stale, register: openRegister, refresh, shiftOpen, mustOpenShift } = useCashShiftGate()
 
   const isKitchen = location.pathname === '/app/kitchen'
   const isPOS = location.pathname === '/app/pos'
+  const onShiftRoute = location.pathname.startsWith('/app/cash/shift')
+  const showShiftGate = blocked && !onShiftRoute
   const meta = PAGE_META[location.pathname] || { title: 'IA·RESTAURANT', zone: 'OPS' }
   const showCopilot = !isKitchen
   const backTarget = getPageBackTarget(location.pathname)
@@ -57,7 +59,7 @@ export function CommandShell() {
   if (isKitchen) {
     return (
       <div className="h-screen bg-orange-50 overflow-hidden flex flex-col">
-        <ShiftOpenGate open={blocked} staleRegister={stale ? openRegister : null} onOpened={refresh} />
+        <ShiftOpenGate open={showShiftGate} staleRegister={stale ? openRegister : null} onOpened={refresh} />
         <header className="h-12 px-3 sm:px-4 flex items-center justify-between gap-2 border-b border-orange-200 bg-gradient-to-r from-orange-500 to-brand-500 shrink-0">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             {backTarget && <PageBack to={backTarget.to} label={backTarget.label} light />}
@@ -79,7 +81,7 @@ export function CommandShell() {
 
   return (
     <div className="h-screen bg-command-bg ops-grid-bg overflow-hidden flex flex-col">
-      <ShiftOpenGate open={blocked} staleRegister={stale ? openRegister : null} onOpened={refresh} />
+      <ShiftOpenGate open={showShiftGate} staleRegister={stale ? openRegister : null} onOpened={refresh} />
       <header className="shrink-0 glass-warm">
         <div className="px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -99,6 +101,17 @@ export function CommandShell() {
             <div className="hidden sm:block">
               <ConnectionStatus />
             </div>
+            {mustOpenShift && (
+              <span className={`hidden md:inline-flex text-[10px] font-bold px-2 py-1 rounded-lg border ${
+                shiftOpen
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : stale
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : 'bg-red-50 text-red-700 border-red-200'
+              }`}>
+                {shiftOpen ? 'Turno abierto' : stale ? 'Cerrar turno' : 'Sin turno'}
+              </span>
+            )}
             <button className="p-2 rounded-lg hover:bg-brand-50 text-slate-500 relative">
               <Bell size={16} />
               {insights.some(i => i.type === 'alert') && (

@@ -3,6 +3,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useTenantContext } from '@/hooks/useTenantContext'
 import { requiresCashShift } from '@/config/cashShift'
 import { cashRepository } from '@/repositories/cashRepository'
+import { onShiftChanged } from '@/lib/shiftEvents'
 import type { CashRegister } from '@/types'
 
 export function useCashShiftGate() {
@@ -41,6 +42,8 @@ export function useCashShiftGate() {
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
   }, [refresh])
+
+  useEffect(() => onShiftChanged(refresh), [refresh])
 
   const shiftOpen = !!register && !stale
   const blocked = mustOpenShift && !checking && !shiftOpen

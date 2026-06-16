@@ -59,13 +59,19 @@
 
 ---
 
-## Día 3 — Bugs críticos
+## Día 3 — Bugs críticos (en curso)
 
 | ID | Descripción | Severidad | Estado |
 |----|-------------|-----------|--------|
-| — | Registrar aquí incidencias encontradas en Día 2 | — | — |
+| C1 | Gate bloqueaba página Corte Z con turno stale | Crítico | ✅ Corregido |
+| C2 | POS/caja no refrescaban tras abrir/cerrar turno | Alto | ✅ Corregido |
+| C3 | Mensaje genérico al abrir con turno anterior abierto | Medio | ✅ Corregido |
 
-**Corregido en este sprint:**
+**Corregido en Día 3:**
+- `/app/cash/shift` exenta del popup bloqueante (permite Corte Z)
+- Evento `shift-changed` sincroniza gate, POS y header
+- Badge de estado de turno en header (abierto / sin turno / cerrar)
+- Guía `docs/CONTINGENCIA.md`
 - `openRegister` ahora usa `tenant_id` / `sucursal_id` del contexto real (no IDs demo)
 - Popup bloqueante de turno al login (no redirección silenciosa al dashboard)
 - Turnos de días anteriores sin cerrar: aviso + redirección a Corte Z
@@ -131,7 +137,7 @@ npm run supabase:sql   # Migraciones manuales
 |-----|--------|------|
 | 1 | 90% | 90% |
 | 2 | 92% | 92% |
-| 3 | 95% | — |
+| 3 | 95% | 95% |
 | 4 | 97% | — |
 | 5 | 98% | — |
 | 6 | 99% | — |

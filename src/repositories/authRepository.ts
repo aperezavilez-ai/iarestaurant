@@ -19,6 +19,9 @@ function normalizeLoginError(email: string, err: unknown): Error {
   if (err instanceof Error) {
     const msg = err.message
     if (msg.toLowerCase().includes('invalid login')) {
+      if (normalized === ADMIN_EMAIL) {
+        return new Error('Contraseña incorrecta. Admin demo: AdminIAR2026! (con 2026, no 2024)')
+      }
       return new Error('Correo o contraseña incorrectos')
     }
     if (msg.includes('Email not confirmed')) {

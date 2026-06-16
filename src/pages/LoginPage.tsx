@@ -152,11 +152,14 @@ export default function LoginPage() {
                   >
                     <p className="text-xs font-semibold text-slate-700 capitalize">{u.role.replace('_', ' ')}</p>
                     <p className="text-[10px] text-slate-600 font-mono break-all leading-snug mt-0.5">{u.email}</p>
+                    <p className="text-[10px] text-brand-600 font-mono mt-0.5">{u.password}</p>
                   </button>
                 ))}
               </div>
-              <p className="text-[10px] text-slate-400 mt-2 text-center">
-                Admin: <span className="font-mono text-slate-600">admin@iarestaurant.mx</span>
+              <p className="text-[10px] text-slate-400 mt-2 text-center leading-relaxed">
+                Cuenta demo admin: <span className="font-mono text-slate-600">admin@iarestaurant.mx</span>
+                {' · '}
+                <span className="font-mono text-brand-700 font-semibold">AdminIAR2026!</span>
               </p>
             </div>
           </div>

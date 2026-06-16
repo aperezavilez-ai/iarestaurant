@@ -29,7 +29,10 @@
 - [x] Checklist de salida creado
 - [x] Gate global de turno implementado
 
-## Día 2 — Pruebas E2E críticas
+## Día 2 — Pruebas E2E críticas (en curso)
+
+### Automatizado
+- [x] `npm run qa:smoke` — lógica turno stale + resumen ventas
 
 ### Rol: Admin / Cajero
 - [ ] Login → aparece popup apertura turno
@@ -65,6 +68,9 @@
 **Corregido en este sprint:**
 - `openRegister` ahora usa `tenant_id` / `sucursal_id` del contexto real (no IDs demo)
 - Popup bloqueante de turno al login (no redirección silenciosa al dashboard)
+- Turnos de días anteriores sin cerrar: aviso + redirección a Corte Z
+- Sync remoto→local de `cash_registers` al consultar turno abierto
+- Script `npm run qa:smoke` para validar lógica de turno
 
 ---
 
@@ -124,7 +130,7 @@ npm run supabase:sql   # Migraciones manuales
 | Día | Meta % | Real |
 |-----|--------|------|
 | 1 | 90% | 90% |
-| 2 | 92% | — |
+| 2 | 92% | 92% |
 | 3 | 95% | — |
 | 4 | 97% | — |
 | 5 | 98% | — |

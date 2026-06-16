@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Clock, DollarSign, Unlock, User } from 'lucide-react'
+import { AlertTriangle, Clock, DollarSign, Unlock, User } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -8,10 +8,12 @@ import { toast } from '@/components/ui/Toast'
 import { useAuthStore } from '@/store/authStore'
 import { useTenantContext } from '@/hooks/useTenantContext'
 import { cashRepository } from '@/repositories/cashRepository'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, formatDate } from '@/lib/utils'
+import type { CashRegister } from '@/types'
 
 interface ShiftOpenGateProps {
   open: boolean
+  staleRegister?: CashRegister | null
   onOpened: () => void
 }
 
@@ -20,7 +22,7 @@ function toDatetimeLocalValue(date = new Date()) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
-export function ShiftOpenGate({ open, onOpened }: ShiftOpenGateProps) {
+export function ShiftOpenGate({ open, staleRegister, onOpened }: ShiftOpenGateProps) {
   const ctx = useTenantContext()
   const { user, tenant } = useAuthStore()
   const navigate = useNavigate()
@@ -53,6 +55,32 @@ export function ShiftOpenGate({ open, onOpened }: ShiftOpenGateProps) {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (staleRegister) {
+    return (
+      <Modal open={open} onClose={() => {}} title="Turno anterior sin cerrar" size="sm" blocking>
+        <div className="p-5 space-y-4">
+          <div className="rounded-xl border border-ops-warning/40 bg-amber-50 p-4 flex gap-3">
+            <AlertTriangle size={20} className="text-ops-warning shrink-0 mt-0.5" />
+            <div className="text-sm text-slate-700 space-y-1">
+              <p>Hay un turno abierto desde <strong>{formatDate(staleRegister.opened_at)}</strong>.</p>
+              <p>Debes hacer <strong>Corte Z</strong> antes de abrir el turno de hoy.</p>
+            </div>
+          </div>
+          <p className="text-xs text-slate-500">
+            Fondo registrado: {formatCurrency(staleRegister.opening_amount)}
+          </p>
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={() => navigate('/app/cash/shift', { replace: true })}
+          >
+            Ir a cerrar turno (Corte Z)
+          </Button>
+        </div>
+      </Modal>
+    )
   }
 
   return (

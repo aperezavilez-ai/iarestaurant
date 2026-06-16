@@ -7,6 +7,16 @@ export interface ShiftSummary {
   cashSales: number
 }
 
+/** Turno de un día anterior sin cerrar — debe hacer Corte Z antes de abrir uno nuevo */
+export function isShiftStale(openedAt: string, now = new Date()): boolean {
+  const opened = new Date(openedAt)
+  return (
+    opened.getFullYear() !== now.getFullYear() ||
+    opened.getMonth() !== now.getMonth() ||
+    opened.getDate() !== now.getDate()
+  )
+}
+
 const EMPTY_METHODS: Record<PaymentMethod, number> = {
   efectivo: 0,
   tarjeta: 0,

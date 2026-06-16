@@ -9,6 +9,8 @@ export const cashService = {
       .eq('tenant_id', tenantId)
       .eq('sucursal_id', sucursalId)
       .eq('status', 'abierta')
+      .order('opened_at', { ascending: false })
+      .limit(1)
       .maybeSingle()
     return data
   },

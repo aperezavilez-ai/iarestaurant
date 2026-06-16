@@ -13,7 +13,8 @@
     "supabase:link": "npx supabase link --project-ref pssycnwgolxiwoyzdsdg",
     "configure:domain": "node scripts/configure-domain.mjs",
     "ensure:admin": "node scripts/ensure-admin.mjs",
-    "recreate:admin": "node scripts/recreate-admin.mjs"
+    "recreate:admin": "node scripts/recreate-admin.mjs",
+    "qa:smoke": "node scripts/qa-smoke.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

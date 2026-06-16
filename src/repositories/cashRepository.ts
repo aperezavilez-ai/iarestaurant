@@ -2,7 +2,7 @@ import { cashService } from '@/services/cashService'
 import { paymentService } from '@/services/paymentService'
 import { localDb } from '@/lib/localDb'
 import { isSupabaseConfigured } from '@/lib/config'
-import { computeShiftSummary, type ShiftSummary } from '@/lib/cashShift'
+import { computeShiftSummary, isShiftStale, type ShiftSummary } from '@/lib/cashShift'
 import { isOnline } from './base'
 import { orderRepository } from './orderRepository'
 import { buildSeedCashRegister } from '@/data/seed'
@@ -12,13 +12,33 @@ import type { TenantContext } from '@/types/context'
 export const cashRepository = {
   async getOpenRegister(ctx: TenantContext): Promise<CashRegister | null> {
     const local = await localDb.getOpenCashRegister(ctx.tenantId, ctx.sucursalId)
-    if (!isSupabaseConfigured() || !isOnline()) return local
+    if (!isSupabaseConfigured() || !isOnline()) {
+      if (local) await localDb.saveCashRegister(local)
+      return local
+    }
     try {
       const remote = await cashService.getOpenRegister(ctx.tenantId, ctx.sucursalId)
-      return remote ?? local
+      const register = remote ?? local
+      if (register) await localDb.saveCashRegister(register)
+      return register
     } catch {
       return local
     }
+  },
+
+  isShiftStale(register: CashRegister): boolean {
+    return isShiftStale(register.opened_at)
+  },
+
+  async getActiveShift(ctx: TenantContext): Promise<{
+    register: CashRegister | null
+    stale: boolean
+    ready: boolean
+  }> {
+    const register = await this.getOpenRegister(ctx)
+    if (!register) return { register: null, stale: false, ready: false }
+    const stale = this.isShiftStale(register)
+    return { register, stale, ready: !stale }
   },
 
   async openRegister(

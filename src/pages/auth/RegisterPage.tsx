@@ -7,6 +7,8 @@ import { Logo } from '@/components/brand/Logo'
 import { toast } from '@/components/ui/Toast'
 import { authRepository } from '@/repositories/authRepository'
 import { isSupabaseConfigured } from '@/lib/config'
+import { useAuthStore } from '@/store/authStore'
+import { bootstrapService } from '@/services/bootstrapService'
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
@@ -15,6 +17,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
+  const { setSession } = useAuthStore()
   const remote = isSupabaseConfigured()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,11 +26,19 @@ export default function RegisterPage() {
     try {
       if (remote) {
         await authRepository.signUp(email, password, fullName, restaurant)
-        toast('Cuenta creada — revisa tu correo para activar el acceso', 'success')
-      } else {
-        await new Promise(r => setTimeout(r, 800))
-        toast('Registro demo completado — usa credenciales demo para entrar', 'success')
+        const session = await authRepository.signIn(email, password)
+        setSession(session)
+        toast(`¡Bienvenido! ${session.tenant.name} ya está listo`, 'success')
+        void bootstrapService.pullFromRemote({
+          tenantId: session.tenant.id,
+          sucursalId: session.sucursal.id,
+          userId: session.user.id,
+        })
+        navigate('/app/dashboard')
+        return
       }
+      await new Promise(r => setTimeout(r, 800))
+      toast('Registro demo completado — usa credenciales demo para entrar', 'success')
       navigate('/login')
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Error al registrar', 'error')
@@ -43,7 +54,7 @@ export default function RegisterPage() {
         <div className="glass-panel rounded-2xl p-8 bg-white shadow-panel">
           <h2 className="text-xl font-black text-slate-800 mb-1">Crear cuenta</h2>
           <p className="text-sm text-slate-500 mb-6">
-            Registra tu restaurante en IA·RESTAURANT
+            Registra tu restaurante y entra al instante — sin confirmar correo
           </p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input label="Nombre del restaurante" placeholder="Mi Restaurante" icon={<Building2 size={16} />} value={restaurant} onChange={e => setRestaurant(e.target.value)} required />

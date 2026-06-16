@@ -115,7 +115,20 @@ export const authRepository = {
     if (!isSupabaseConfigured()) {
       throw new Error('El registro en línea no está disponible en este entorno')
     }
-    await authService.signUp(email, password, fullName, restaurantName)
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email.trim().toLowerCase(),
+        password,
+        full_name: fullName.trim(),
+        restaurant_name: restaurantName.trim(),
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      throw new Error(data.error || 'No se pudo crear la cuenta')
+    }
   },
 
   async requestPasswordReset(email: string): Promise<void> {

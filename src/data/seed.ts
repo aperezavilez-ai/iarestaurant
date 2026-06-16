@@ -13,6 +13,7 @@ import type {
 } from '@/types'
 import { DEMO_ORG_ID, DEMO_SUCURSAL_ID, DEMO_TENANT_ID } from '@/lib/config'
 import { getProductImageUrl } from '@/lib/productImages'
+import { SOUVENIR_ITEMS } from '@/data/souvenirsCatalog'
 
 const T = DEMO_TENANT_ID
 const S = DEMO_SUCURSAL_ID
@@ -78,6 +79,7 @@ export const SEED_CATEGORIES: Category[] = [
   { id: 'cat-bebidas', tenant_id: T, sucursal_id: S, name: 'Bebidas', color: '#3b82f6', sort_order: 4, is_active: true, kitchen_center: 'bebidas' },
   { id: 'cat-cocteles', tenant_id: T, sucursal_id: S, name: 'Cocteles', color: '#8b5cf6', sort_order: 5, is_active: true, kitchen_center: 'barra_fria' },
   { id: 'cat-postres', tenant_id: T, sucursal_id: S, name: 'Postres', color: '#ec4899', sort_order: 6, is_active: true, kitchen_center: 'postres' },
+  { id: 'cat-souvenirs', tenant_id: T, sucursal_id: S, name: 'Souvenirs', color: '#a855f7', sort_order: 7, is_active: true, kitchen_center: 'souvenirs' },
 ]
 
 export const SEED_PRODUCTS: Product[] = [
@@ -95,6 +97,20 @@ export const SEED_PRODUCTS: Product[] = [
   { id: 'p12', tenant_id: T, sucursal_id: S, category_id: 'cat-cocteles', name: 'Michelada', price: 65, cost: 22, is_active: true, has_variants: false, preparation_time: 4 },
   { id: 'p13', tenant_id: T, sucursal_id: S, category_id: 'cat-postres', name: 'Flan Napolitano', price: 45, cost: 12, is_active: true, has_variants: false, preparation_time: 3 },
   { id: 'p14', tenant_id: T, sucursal_id: S, category_id: 'cat-postres', name: 'Churros', price: 50, cost: 14, is_active: false, has_variants: false, preparation_time: 6 },
+  ...SOUVENIR_ITEMS.map((item, i) => ({
+    id: `p-sv-${i + 1}`,
+    tenant_id: T,
+    sucursal_id: S,
+    category_id: 'cat-souvenirs',
+    name: item.name,
+    description: 'Artículo promocional con el logo de tu restaurante',
+    price: item.price,
+    cost: item.cost,
+    sku: item.sku,
+    is_active: true,
+    has_variants: false,
+    preparation_time: 1,
+  })),
 ].map((p) => ({ ...p, image_url: getProductImageUrl(p) }))
 
 export const SEED_AREAS: TableArea[] = [

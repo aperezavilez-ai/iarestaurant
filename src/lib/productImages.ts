@@ -16,6 +16,12 @@ const BY_NAME: Record<string, string> = {
   Michelada: 'https://images.unsplash.com/photo-1436076863939-06870fe779c2?w=400&q=80',
   'Flan Napolitano': 'https://images.unsplash.com/photo-1551024602-b22ff4a0816d?w=400&q=80',
   Churros: 'https://images.unsplash.com/photo-1551024926-7fb043ee4ec6?w=400&q=80',
+  'Vaso con logo': 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7b87?w=400&q=80',
+  'Termo con logo': 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400&q=80',
+  'Playera con logo': 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80',
+  'Mandil con logo': 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=400&q=80',
+  'Taza con logo': 'https://images.unsplash.com/photo-1514228742587-6b1558fcca13?w=400&q=80',
+  'Gorra con logo': 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400&q=80',
 }
 
 const BY_CATEGORY: Record<string, string> = {
@@ -31,6 +37,8 @@ const BY_CATEGORY: Record<string, string> = {
   '00000000-0000-0000-0000-000000000105': BY_NAME['Margarita Clásica'],
   'cat-postres': BY_NAME['Flan Napolitano'],
   '00000000-0000-0000-0000-000000000106': BY_NAME['Flan Napolitano'],
+  'cat-souvenirs': BY_NAME['Taza con logo'],
+  '00000000-0000-0000-0000-000000000107': BY_NAME['Taza con logo'],
 }
 
 export const GENERIC_FOOD_IMAGE =

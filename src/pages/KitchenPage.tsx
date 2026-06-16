@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
-import { Clock, CheckCircle, Bell, Flame, QrCode, AlertTriangle } from 'lucide-react'
+import { Clock, CheckCircle, Bell, Flame, QrCode, AlertTriangle, ShoppingBag } from 'lucide-react'
 import { toast } from '@/components/ui/Toast'
 import { useTenantContext } from '@/hooks/useTenantContext'
 import { useOpsSync } from '@/hooks/useOpsSync'
@@ -13,7 +13,9 @@ import { catalogRepository } from '@/repositories/catalogRepository'
 import { useLiveFlowStore } from '@/store/liveFlowStore'
 import { KITCHEN_CENTERS, itemMatchesCenter, getProductCategory, type KitchenCenterId } from '@/lib/productionCenters'
 import { whatsappService } from '@/services/whatsappService'
-import type { Order, OrderItem } from '@/types'
+import { getProductImageUrl } from '@/lib/productImages'
+import { formatCurrency } from '@/lib/utils'
+import type { Order, OrderItem, Product } from '@/types'
 import type { TenantContext } from '@/types/context'
 
 async function notifyOrderReady(ctx: TenantContext, title: string, message: string) {
@@ -41,9 +43,11 @@ export default function KitchenPage() {
   const [now, setNow] = useState(Date.now())
   const [center, setCenter] = useState<KitchenCenterId>('all')
   const [productKitchenMap, setProductKitchenMap] = useState<Record<string, string>>({})
+  const [souvenirProducts, setSouvenirProducts] = useState<Product[]>([])
 
   const load = useCallback(async () => {
     if (!ctx) return
+    await catalogRepository.ensureSouvenirsCatalog(ctx)
     const [active, tables, products] = await Promise.all([
       orderRepository.getActiveOrders(ctx),
       tableRepository.getTables(ctx),
@@ -56,6 +60,14 @@ export default function KitchenPage() {
       if (p.category?.kitchen_center) map[p.id] = p.category.kitchen_center
     }
     setProductKitchenMap(map)
+    setSouvenirProducts(
+      products.filter(p =>
+        p.is_active && (
+          p.category?.kitchen_center === 'souvenirs' ||
+          p.category?.name?.toLowerCase() === 'souvenirs'
+        ),
+      ),
+    )
   }, [ctx])
 
   useOpsSync(load, 3000)
@@ -252,7 +264,36 @@ export default function KitchenPage() {
             </div>
           )
         })}
-        {visibleOrders.length === 0 && (
+        {visibleOrders.length === 0 && center === 'souvenirs' && souvenirProducts.length > 0 ? (
+          <div className="col-span-full space-y-4">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <p className="font-black text-slate-800 flex items-center gap-2">
+                  <ShoppingBag size={18} className="text-brand-600" /> Souvenirs en venta
+                </p>
+                <p className="text-xs text-slate-500 mt-1">Artículos con logo del restaurante · cobra desde POS</p>
+              </div>
+              <p className="text-[10px] font-mono text-slate-400 uppercase">Sin pedidos en cola</p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {souvenirProducts.map(p => (
+                <div key={p.id} className="rounded-2xl border border-command-border bg-white overflow-hidden shadow-card">
+                  <div className="aspect-square bg-slate-100">
+                    <img
+                      src={getProductImageUrl(p)}
+                      alt={p.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="p-3">
+                    <p className="text-xs font-bold text-slate-800 leading-tight">{p.name}</p>
+                    <p className="text-sm font-mono font-black text-brand-600 mt-1">{formatCurrency(p.price)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : visibleOrders.length === 0 && (
           <div className="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
             <Flame size={48} className="mb-4 opacity-30 text-orange-400" />
             <p className="font-mono text-sm">SIN ÓRDENES EN COLA</p>

@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from '@/lib/config'
 import { withTimeout } from '@/lib/async'
 import type { Product, Category } from '@/types'
 import type { TenantContext } from '@/types/context'
+import { SOUVENIR_ITEMS } from '@/data/souvenirsCatalog'
 
 async function remoteProducts(tenantId: string) {
   return withTimeout(catalogService.getProducts(tenantId)).catch(() => [] as Product[])
@@ -146,5 +147,36 @@ export const catalogRepository = {
       }
     }
     return updated
+  },
+
+  async ensureSouvenirsCatalog(ctx: TenantContext): Promise<void> {
+    const categories = await this.getCategories(ctx)
+    let souvenirs = categories.find(c => c.name.trim().toLowerCase() === 'souvenirs')
+    if (!souvenirs) {
+      souvenirs = await this.createCategory(ctx, {
+        name: 'Souvenirs',
+        color: '#a855f7',
+        kitchen_center: 'souvenirs',
+      })
+    } else if (!souvenirs.kitchen_center) {
+      await this.updateCategory(ctx, souvenirs.id, { kitchen_center: 'souvenirs' })
+      souvenirs = { ...souvenirs, kitchen_center: 'souvenirs' }
+    }
+
+    const products = await this.getProducts(ctx)
+    for (const item of SOUVENIR_ITEMS) {
+      const exists = products.some(
+        p => p.category_id === souvenirs!.id && p.name.toLowerCase() === item.name.toLowerCase(),
+      )
+      if (exists) continue
+      await this.createProduct(ctx, {
+        name: item.name,
+        description: 'Artículo promocional con el logo de tu restaurante',
+        price: item.price,
+        cost: item.cost,
+        category_id: souvenirs.id,
+        sku: item.sku,
+      })
+    }
   },
 }

@@ -4,6 +4,7 @@ import { tenantService } from '@/services/tenantService'
 import { localDb } from '@/lib/localDb'
 import { supabase } from '@/lib/supabase'
 import { useOpsDataStore } from '@/store/opsDataStore'
+import { catalogRepository } from '@/repositories/catalogRepository'
 import type { TenantContext } from '@/types/context'
 import type { Ingredient, StockMovement } from '@/types/demo'
 
@@ -152,6 +153,11 @@ async function pullFromRemoteInner(ctx: TenantContext): Promise<{ ok: boolean; t
         useOpsDataStore.getState().hydrateInventory(mapped, movMapped)
         synced.push('ingredients')
       }
+
+      try {
+        await catalogRepository.ensureSouvenirsCatalog(ctx)
+        synced.push('souvenirs_catalog')
+      } catch { /* opcional */ }
 
       return { ok: true, tables: synced }
     } catch {

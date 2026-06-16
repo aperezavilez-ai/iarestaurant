@@ -133,6 +133,10 @@ export default async function handler(req, res) {
       url = await createMercadoPagoLink(config, amount, folio, returnUrl)
     } else if (gateway === 'stripe') {
       url = await createStripeLink(config, amount, folio, returnUrl)
+    } else if (gateway === 'clip') {
+      return res.status(400).json({
+        error: 'Clip no usa links desde IA·RESTAURANT. Cobra con tu terminal o app Clip y confirma en caja.',
+      })
     } else {
       return res.status(400).json({
         error: 'Solo Mercado Pago y Stripe están soportados. Conecta una en Pasarelas de pago.',

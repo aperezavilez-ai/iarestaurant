@@ -40,7 +40,7 @@ export const ALL_MODULES: ModuleDef[] = [
   { id: 'catalog', phase: 1, label: 'Catálogo', path: '/app/catalog', icon: Package, group: 'Operación', roles: ['admin_restaurant','gerente','supervisor'], description: 'Productos, variantes y categorías' },
   { id: 'categories', phase: 1, label: 'Categorías', path: '/app/categories', icon: Package, group: 'Operación', roles: ['admin_restaurant','gerente'], description: 'Gestión de categorías del menú' },
   { id: 'cash', phase: 1, label: 'Caja', path: '/app/cash', icon: Vault, group: 'Operación', roles: ['cajero','gerente','admin_restaurant'], description: 'Apertura, corte X y corte Z' },
-  { id: 'payment-gateways', phase: 1, label: 'Pasarelas', path: '/app/payment-gateways', icon: CreditCard, group: 'Clientes & Ventas', roles: ['gerente','admin_restaurant'], description: 'Conectar Mercado Pago o Stripe — links de pago, dinero a tu cuenta' },
+  { id: 'payment-gateways', phase: 1, label: 'Pasarelas', path: '/app/payment-gateways', icon: CreditCard, group: 'Clientes & Ventas', roles: ['gerente','admin_restaurant'], description: 'Puente MP, Stripe (negocio) y Clip — dinero a tu cuenta' },
   { id: 'promotions', phase: 0, label: 'Promociones', path: '/app/promotions', icon: Zap, group: 'Operación', roles: ['gerente','admin_restaurant'], description: '2x1, combos, happy hour, cupones' },
   { id: 'delivery', phase: 14, label: 'Delivery', path: '/app/delivery', icon: Bike, group: 'Operación', roles: ['gerente','supervisor','admin_restaurant'], description: 'Pedidos a domicilio y repartidores' },
   { id: 'reservations', phase: 15, label: 'Reservaciones', path: '/app/reservations', icon: Calendar, group: 'Operación', roles: ['mesero','gerente','admin_restaurant'], description: 'Calendario y lista de espera' },
@@ -64,7 +64,7 @@ export const ALL_MODULES: ModuleDef[] = [
   { id: 'hr', phase: 24, label: 'RRHH', path: '/app/hr', icon: Users, group: 'Empresa & SaaS', roles: ['gerente','admin_restaurant'], description: 'Turnos, asistencia, comisiones' },
   { id: 'branches', phase: 0, label: 'Sucursales', path: '/app/branches', icon: Building2, group: 'Empresa & SaaS', roles: ['admin_restaurant','admin_saas'], description: 'Multi sucursal' },
   { id: 'franchise', phase: 32, label: 'Franquicias', path: '/app/franchise', icon: GitBranch, group: 'Empresa & SaaS', roles: ['admin_saas','admin_restaurant'], description: 'Regalías y catálogo corporativo' },
-  { id: 'subscriptions', phase: 11, label: 'Suscripciones', path: '/app/subscriptions', icon: CreditCard, group: 'Empresa & SaaS', roles: ['admin_saas','admin_restaurant'], description: 'Planes SaaS y límites' },
+  { id: 'subscriptions', phase: 11, label: 'Suscripciones', path: '/app/subscriptions', icon: CreditCard, group: 'Empresa & SaaS', roles: ['admin_saas','admin_restaurant'], description: 'Plan IA·RESTAURANT — cobro con Stripe a la plataforma' },
   { id: 'saas-owner', phase: 45, label: 'Panel SaaS', path: '/app/saas', icon: Cloud, group: 'Empresa & SaaS', roles: ['admin_saas'], description: 'MRR, ARR, churn, salud plataforma' },
   { id: 'onboarding', phase: 41, label: 'Onboarding', path: '/app/onboarding', icon: BookOpen, group: 'Empresa & SaaS', roles: ['admin_restaurant'], description: 'Configuración guiada inicial' },
   { id: 'support', phase: 29, label: 'Soporte', path: '/app/support', icon: Headphones, group: 'Empresa & SaaS', roles: ['admin_restaurant','gerente'], description: 'Tickets y base de conocimiento' },
@@ -109,7 +109,7 @@ export const PRODUCTION_MODULE_IDS = new Set([
   'dashboard', 'pos', 'sales', 'tables', 'kitchen', 'catalog', 'cash', 'payment-gateways',
   'delivery', 'reservations', 'inventory', 'purchases', 'customers', 'loyalty', 'invoicing',
   'reports', 'finance', 'qr', 'comensal', 'mesero-pwa', 'users', 'branches',
-  'notifications', 'settings', 'integrations', 'printing',
+  'notifications', 'settings', 'integrations', 'printing', 'subscriptions',
 ])
 
 export const PRODUCTION_MODULES = ALL_MODULES.filter((m) => PRODUCTION_MODULE_IDS.has(m.id))

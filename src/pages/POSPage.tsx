@@ -610,6 +610,17 @@ export default function POSPage() {
             )}
           </div>
 
+          {payMethod === 'tarjeta' && paymentConfig.gateway === 'clip' && (
+            <div className="rounded-xl border border-orange-200 bg-orange-50 p-3 text-center space-y-2">
+              <p className="text-xs text-slate-700 leading-relaxed">
+                Cobra con tu <strong>terminal o app Clip</strong>. El dinero va a tu cuenta Clip.
+              </p>
+              <a href="https://www.clip.mx/" target="_blank" rel="noopener noreferrer" className="text-xs text-brand-600 font-semibold hover:underline">
+                Abrir Clip
+              </a>
+            </div>
+          )}
+
           {canGeneratePaymentLink && (
             <Button
               variant="outline"
@@ -621,12 +632,12 @@ export default function POSPage() {
             </Button>
           )}
 
-          {payMethod === 'tarjeta' && !canGeneratePaymentLink && (
+          {payMethod === 'tarjeta' && !canGeneratePaymentLink && paymentConfig.gateway !== 'clip' && (
             <p className="text-[10px] text-slate-500 text-center leading-relaxed">
               <Link to="/app/payment-gateways" className="text-brand-600 font-semibold hover:underline">
-                Conecta Mercado Pago o Stripe
+                Conecta Mercado Pago, Stripe o Clip
               </Link>
-              {' '}para generar links de pago (IA·RESTAURANT solo es puente — el dinero va a tu cuenta)
+              {' '}— IA·RESTAURANT solo es puente; el dinero va a tu cuenta
             </p>
           )}
 

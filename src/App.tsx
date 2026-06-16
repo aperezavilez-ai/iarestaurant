@@ -35,6 +35,7 @@ import InvoicingPage from '@/pages/InvoicingPage'
 import IntegrationsPage from '@/pages/IntegrationsPage'
 import NotificationsPage from '@/pages/NotificationsPage'
 import FinancePage from '@/pages/FinancePage'
+import SubscriptionsPage from '@/pages/SubscriptionsPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
@@ -84,6 +85,7 @@ export default function App() {
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="integrations" element={<IntegrationsPage />} />
+            <Route path="subscriptions" element={<SubscriptionsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

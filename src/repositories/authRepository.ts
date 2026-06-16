@@ -14,10 +14,13 @@ function normalizeLoginError(email: string, err: unknown): Error {
     return new Error(`Correo incorrecto. Usa: ${ADMIN_EMAIL}`)
   }
   if (RETIRED_ADMIN_EMAILS.includes(normalized)) {
-    return new Error(`Cuenta desactivada. Usa el admin actual: ${ADMIN_EMAIL}`)
+    return new Error(`Cuenta desactivada. Usa: ${ADMIN_EMAIL} · contraseña AdminIAR2026!`)
   }
   if (err instanceof Error) {
     const msg = err.message
+    if (msg.toLowerCase().includes('banned')) {
+      return new Error(`Cuenta anterior desactivada. Usa: ${ADMIN_EMAIL} · contraseña AdminIAR2026!`)
+    }
     if (msg.toLowerCase().includes('invalid login')) {
       if (normalized === ADMIN_EMAIL) {
         return new Error('Contraseña incorrecta. Admin demo: AdminIAR2026! (con 2026, no 2024)')

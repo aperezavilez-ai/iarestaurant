@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
+  const [loginError, setLoginError] = useState('')
   const [loading, setLoading] = useState(false)
   const [bootLine, setBootLine] = useState(0)
   const { setSession } = useAuthStore()
@@ -35,6 +36,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setLoginError('')
     try {
       const session = await authRepository.signIn(email, password)
       setSession(session)
@@ -49,7 +51,8 @@ export default function LoginPage() {
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Credenciales incorrectas'
-      toast(msg.length < 120 ? msg : 'Acceso denegado — verifica credenciales', 'error')
+      setLoginError(msg)
+      toast(msg, 'error')
     } finally {
       setLoading(false)
     }
@@ -134,6 +137,11 @@ export default function LoginPage() {
               <Button type="submit" loading={loading} className="w-full" size="lg">
                 Entrar al centro de mando
               </Button>
+              {loginError && (
+                <p className="text-sm text-ops-danger bg-red-50 border border-red-200 rounded-xl px-4 py-3 leading-snug">
+                  {loginError}
+                </p>
+              )}
             </form>
             <p className="text-center text-sm text-slate-500 mt-4">
               <Link to="/register" className="text-brand-600 font-semibold hover:underline">Crear cuenta</Link>
@@ -147,7 +155,7 @@ export default function LoginPage() {
                   <button
                     key={u.email}
                     type="button"
-                    onClick={() => { setEmail(u.email); setPassword(u.password) }}
+                    onClick={() => { setEmail(u.email); setPassword(u.password); setLoginError('') }}
                     className="text-left p-2.5 rounded-xl border border-command-border hover:border-brand-400 hover:bg-brand-50 transition-all"
                   >
                     <p className="text-xs font-semibold text-slate-700 capitalize">{u.role.replace('_', ' ')}</p>

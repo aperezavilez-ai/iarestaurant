@@ -32,6 +32,10 @@ export interface Tenant {
   max_productos: number
   max_devices?: number
   is_active: boolean
+  stripe_customer_id?: string | null
+  stripe_subscription_id?: string | null
+  subscription_status?: 'none' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'incomplete' | 'unpaid'
+  subscription_ends_at?: string | null
   created_at: string
 }
 

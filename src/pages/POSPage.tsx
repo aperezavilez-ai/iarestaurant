@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { TicketModal } from '@/components/pos/TicketModal'
 import { formatCurrency, cn } from '@/lib/utils'
+import { partItemLabels } from '@/lib/splitBill'
 import { toast } from '@/components/ui/Toast'
 import { useTenantContext } from '@/hooks/useTenantContext'
 import { useAuthStore } from '@/store/authStore'
@@ -581,16 +582,23 @@ export default function POSPage() {
                   disabled={Boolean(part.paid_at)}
                   onClick={() => loadSplitPart(part.id, part.label, part.amount)}
                   className={cn(
-                    'w-full flex justify-between items-center p-3 rounded-xl border text-sm',
+                    'w-full flex flex-col gap-0.5 p-3 rounded-xl border text-sm text-left',
                     part.paid_at
                       ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
                       : 'border-command-border hover:border-brand-300 hover:bg-brand-50'
                   )}
                 >
-                  <span className="font-semibold">{part.label}</span>
-                  <span className="font-mono font-bold">
-                    {part.paid_at ? 'Cobrado ✓' : formatCurrency(part.amount)}
-                  </span>
+                  <div className="flex justify-between items-center w-full">
+                    <span className="font-semibold">{part.label}</span>
+                    <span className="font-mono font-bold">
+                      {part.paid_at ? 'Cobrado ✓' : formatCurrency(part.amount)}
+                    </span>
+                  </div>
+                  {part.item_ids?.length ? (
+                    <span className="text-[10px] text-slate-500 truncate w-full">
+                      {partItemLabels(payOrder.items || [], part.item_ids)}
+                    </span>
+                  ) : null}
                 </button>
               ))}
             </div>

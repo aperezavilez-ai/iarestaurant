@@ -10,9 +10,14 @@ import { withLocalFirst, withHybridList } from './base'
 import { isSupabaseConfigured } from '@/lib/config'
 import { generateFolio } from '@/lib/utils'
 import { TAX_RATE } from '@/data/constants'
-import { buildEqualSplitParts, allPartsPaid } from '@/lib/splitBill'
+import { buildEqualSplitParts, buildItemSplitParts, allPartsPaid, validateItemSplit, type ItemSplitInput } from '@/lib/splitBill'
+import type { OrderSplitMode } from '@/types'
 import type { Order, OrderItem, Payment, PaymentMethod, RestaurantTable } from '@/types'
 import type { TenantContext } from '@/types/context'
+
+export type SplitBillInput =
+  | { mode: 'equal'; labels: string[] }
+  | { mode: 'items'; parts: ItemSplitInput[] }
 
 async function resolveTableCustomer(ctx: TenantContext, tableId?: string) {
   if (!tableId) return { customerId: undefined as string | undefined, customerName: undefined as string | undefined }
@@ -556,18 +561,31 @@ export const orderRepository = {
     return orders.find((o) => o.id === orderId) ?? null
   },
 
-  async setupSplitBill(ctx: TenantContext, orderId: string, labels: string[]): Promise<Order> {
+  async setupSplitBill(ctx: TenantContext, orderId: string, input: SplitBillInput): Promise<Order> {
     const order = await this.getOrder(ctx, orderId)
     if (!order) throw new Error('Orden no encontrada')
     if (order.status === 'cobrada') throw new Error('Orden ya cobrada')
-    if (labels.length < 2) throw new Error('Indica al menos 2 comensales')
 
-    const parts = buildEqualSplitParts(order.total, labels)
+    let parts
+    let mode: OrderSplitMode
+
+    if (input.mode === 'equal') {
+      if (input.labels.length < 2) throw new Error('Indica al menos 2 comensales')
+      parts = buildEqualSplitParts(order.total, input.labels)
+      mode = 'equal'
+    } else {
+      const items = order.items || []
+      const err = validateItemSplit(items, input.parts)
+      if (err) throw new Error(err)
+      parts = buildItemSplitParts(order, input.parts)
+      mode = 'items'
+    }
+
     const now = new Date().toISOString()
     const updated: Order = {
       ...order,
       status: 'cobro_parcial',
-      split_config: { parts, created_at: now },
+      split_config: { mode, parts, created_at: now },
       updated_at: now,
     }
 

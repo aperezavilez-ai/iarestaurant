@@ -18,7 +18,8 @@ import { TableCard } from '@/components/tables/TableCard'
 import { sameOrders, sameTables } from '@/lib/opsEquality'
 import { usePOSStore } from '@/store/posStore'
 import { crmRepository } from '@/repositories/crmRepository'
-import type { RestaurantTable, TableStatus, Order, TableArea, User } from '@/types'
+import type { RestaurantTable, TableStatus, Order, TableArea, User, OrderItem, OrderSplitMode } from '@/types'
+import { buildEqualSplitParts, buildItemSplitParts, partItemLabels } from '@/lib/splitBill'
 import type { Customer } from '@/types/demo'
 
 const statusLabel: Record<TableStatus, string> = {
@@ -44,9 +45,13 @@ export default function TablesPage() {
   const [tableForm, setTableForm] = useState({ number: '', capacity: '4', area_id: '' })
   const [saving, setSaving] = useState(false)
   const [splitModal, setSplitModal] = useState(false)
+  const [splitMode, setSplitMode] = useState<OrderSplitMode>('equal')
   const [splitParts, setSplitParts] = useState(3)
   const [splitTotal, setSplitTotal] = useState(0)
+  const [splitSubtotal, setSplitSubtotal] = useState(0)
   const [splitNames, setSplitNames] = useState(['', '', ''])
+  const [splitOrderItems, setSplitOrderItems] = useState<OrderItem[]>([])
+  const [splitItemAssign, setSplitItemAssign] = useState<Record<string, number>>({})
   const [splitSaving, setSplitSaving] = useState(false)
   const [transferModal, setTransferModal] = useState(false)
   const [mergeModal, setMergeModal] = useState(false)
@@ -290,6 +295,21 @@ export default function TablesPage() {
     setSelected(null)
   }
 
+  const splitPreview = useMemo(() => {
+    const labels = splitNames.map((n, i) => n.trim() || `Persona ${i + 1}`)
+    if (splitMode === 'equal') {
+      return buildEqualSplitParts(splitTotal, labels)
+    }
+    const parts = labels.map((label, i) => ({
+      label,
+      item_ids: splitOrderItems.filter((it) => splitItemAssign[it.id] === i).map((it) => it.id),
+    }))
+    return buildItemSplitParts(
+      { subtotal: splitSubtotal, total: splitTotal, items: splitOrderItems },
+      parts
+    )
+  }, [splitMode, splitNames, splitTotal, splitSubtotal, splitOrderItems, splitItemAssign])
+
   const openSplit = async () => {
     if (!ctx || !selected) return
     const order = getOrder(selected.id)
@@ -298,9 +318,14 @@ export default function TablesPage() {
       return
     }
     setSplitTotal(order.total)
+    setSplitSubtotal(order.subtotal)
     const n = Math.max(2, order.guests || 2)
+    const items = order.items || []
     setSplitParts(n)
     setSplitNames(Array.from({ length: n }, (_, i) => `Persona ${i + 1}`))
+    setSplitOrderItems(items)
+    setSplitItemAssign(Object.fromEntries(items.map((it, i) => [it.id, i % n])))
+    setSplitMode('equal')
     setSplitModal(true)
   }
 
@@ -310,8 +335,16 @@ export default function TablesPage() {
     if (!order) return
     setSplitSaving(true)
     try {
-      const labels = splitNames.map((n, i) => n.trim() || `Persona ${i + 1}`)
-      await orderRepository.setupSplitBill(ctx, order.id, labels)
+      if (splitMode === 'equal') {
+        const labels = splitNames.map((n, i) => n.trim() || `Persona ${i + 1}`)
+        await orderRepository.setupSplitBill(ctx, order.id, { mode: 'equal', labels })
+      } else {
+        const parts = splitNames.map((label, i) => ({
+          label: label.trim() || `Persona ${i + 1}`,
+          item_ids: splitOrderItems.filter((it) => splitItemAssign[it.id] === i).map((it) => it.id),
+        }))
+        await orderRepository.setupSplitBill(ctx, order.id, { mode: 'items', parts })
+      }
       toast('Cuenta dividida — cobra cada parte en POS', 'success')
       setSplitModal(false)
       await load()
@@ -482,22 +515,29 @@ export default function TablesPage() {
                   <div className="rounded-xl border border-brand-200 bg-brand-50/50 p-3 space-y-2">
                     <p className="text-xs font-bold text-slate-700">Cuenta dividida</p>
                     {getOrder(selected.id)!.split_config!.parts.map((part) => (
-                      <div key={part.id} className="flex items-center justify-between gap-2 text-sm">
-                        <span className="font-semibold text-slate-800">{part.label}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold">{formatCurrency(part.amount)}</span>
-                          {part.paid_at ? (
-                            <Badge variant="success">Cobrado</Badge>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => goToCollectPart(selected, getOrder(selected.id)!, part)}
-                            >
-                              Cobrar
-                            </Button>
-                          )}
+                      <div key={part.id} className="flex flex-col gap-0.5 text-sm">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-slate-800">{part.label}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold">{formatCurrency(part.amount)}</span>
+                            {part.paid_at ? (
+                              <Badge variant="success">Cobrado</Badge>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => goToCollectPart(selected, getOrder(selected.id)!, part)}
+                              >
+                                Cobrar
+                              </Button>
+                            )}
+                          </div>
                         </div>
+                        {part.item_ids?.length ? (
+                          <p className="text-[10px] text-slate-500 truncate">
+                            {partItemLabels(getOrder(selected.id)!.items || [], part.item_ids)}
+                          </p>
+                        ) : null}
                       </div>
                     ))}
                   </div>
@@ -607,9 +647,28 @@ export default function TablesPage() {
         )}
       </Modal>
 
-      <Modal open={splitModal} onClose={() => setSplitModal(false)} title="División de cuenta" size="sm">
+      <Modal open={splitModal} onClose={() => setSplitModal(false)} title="División de cuenta" size="md">
         <div className="p-5 space-y-4">
           <p className="text-sm text-slate-600">Mesa {selected?.number} — Total {formatCurrency(splitTotal)}</p>
+
+          <div className="flex gap-2 p-1 rounded-xl bg-slate-100">
+            {(['equal', 'items'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setSplitMode(mode)}
+                disabled={mode === 'items' && splitOrderItems.length < 2}
+                className={cn(
+                  'flex-1 py-2 rounded-lg text-xs font-bold transition-colors',
+                  splitMode === mode ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500',
+                  mode === 'items' && splitOrderItems.length < 2 && 'opacity-40 cursor-not-allowed'
+                )}
+              >
+                {mode === 'equal' ? 'Partes iguales' : 'Por ítems'}
+              </button>
+            ))}
+          </div>
+
           <div className="flex gap-2">
             {[2, 3, 4, 5, 6].map(n => (
               <button
@@ -622,6 +681,14 @@ export default function TablesPage() {
                     while (next.length < n) next.push(`Persona ${next.length + 1}`)
                     return next.slice(0, n)
                   })
+                  setSplitItemAssign((prev) => {
+                    const next = { ...prev }
+                    for (const item of splitOrderItems) {
+                      const idx = prev[item.id] ?? 0
+                      if (idx >= n) next[item.id] = idx % n
+                    }
+                    return next
+                  })
                 }}
                 className={cn('flex-1 py-3 rounded-xl border font-bold', splitParts === n ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-command-border')}
               >
@@ -629,6 +696,7 @@ export default function TablesPage() {
               </button>
             ))}
           </div>
+
           <div className="space-y-2">
             {Array.from({ length: splitParts }, (_, i) => (
               <div key={i} className="flex gap-2 items-center">
@@ -643,13 +711,40 @@ export default function TablesPage() {
                   className="flex-1"
                 />
                 <span className="text-sm font-mono font-bold shrink-0 w-20 text-right">
-                  {formatCurrency(Math.round((splitTotal / splitParts) * 100) / 100)}
+                  {formatCurrency(splitPreview[i]?.amount ?? 0)}
                 </span>
               </div>
             ))}
           </div>
+
+          {splitMode === 'items' && splitOrderItems.length > 0 && (
+            <div className="rounded-xl border border-command-border divide-y max-h-48 overflow-y-auto">
+              {splitOrderItems.map((item) => (
+                <div key={item.id} className="flex items-center gap-2 px-3 py-2 text-sm">
+                  <span className="flex-1 truncate">
+                    {item.quantity}× {item.product_name}
+                  </span>
+                  <span className="text-xs font-mono text-slate-500 shrink-0">{formatCurrency(item.subtotal)}</span>
+                  <select
+                    value={splitItemAssign[item.id] ?? 0}
+                    onChange={(e) => setSplitItemAssign((prev) => ({ ...prev, [item.id]: Number(e.target.value) }))}
+                    className="text-xs border border-command-border rounded-lg px-2 py-1 bg-white"
+                  >
+                    {Array.from({ length: splitParts }, (_, i) => (
+                      <option key={i} value={i}>
+                        {splitNames[i]?.trim() || `Persona ${i + 1}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          )}
+
           <p className="text-[10px] text-slate-500 leading-relaxed">
-            Cada comensal paga su parte en POS (efectivo, tarjeta o mixto). El cobro con tarjeta es solo registro — el cliente paga en su app MP, Stripe o Clip.
+            {splitMode === 'equal'
+              ? 'Cada comensal paga su parte en POS (efectivo, tarjeta o mixto). El cobro con tarjeta es solo registro.'
+              : 'Asigna cada producto a un comensal. El total incluye IVA y descuentos proporcionales.'}
           </p>
           <Button className="w-full" loading={splitSaving} onClick={confirmSplit}>
             Confirmar división

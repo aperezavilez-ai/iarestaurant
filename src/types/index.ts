@@ -181,9 +181,14 @@ export interface OrderSplitPart {
   label: string
   amount: number
   paid_at?: string
+  /** IDs de order_items asignados (modo por ítems) */
+  item_ids?: string[]
 }
 
+export type OrderSplitMode = 'equal' | 'items'
+
 export interface OrderSplitConfig {
+  mode?: OrderSplitMode
   parts: OrderSplitPart[]
   created_at: string
 }

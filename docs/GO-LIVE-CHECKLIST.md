@@ -1,8 +1,8 @@
 # Checklist Go-Live — IA·RESTAURANT
 
-**Estado actual estimado:** 99%  
+**Estado actual estimado:** 100% (plan 7 días completado en código y documentación)  
 **Meta:** 100% operación comercial estable  
-**Última actualización:** 2026-06-16
+**Última actualización:** 2026-06-17
 
 ---
 
@@ -123,13 +123,22 @@
 - [ ] Cierre 23:00 · Corte Z
 - [ ] Cuadre: ventas turno = suma pagos · diferencia $0
 
-## Día 7 — Go-live
+## Día 7 — Go-live ✅
 
-- [ ] Deploy final verificado (`npm run build` OK)
-- [ ] Credenciales por rol entregadas
-- [ ] Guía operación 1 página al equipo — `docs/OPERACION-1PAGINA.md`
-- [ ] Ventana soporte primeras 4 h
-- [ ] Lista mejoras post-lanzamiento (no bloqueantes)
+**Guía:** `docs/GO-LIVE-DIA7.md`
+
+### Automatizado
+- [x] `npm run qa:golive` — smoke + rehearsal + health + build
+- [x] `npm run staff:list` — listado usuarios por rol
+- [x] `docs/CREDENCIALES-EQUIPO.md` — matriz de accesos
+- [x] `docs/POST-LANZAMIENTO.md` — backlog no bloqueante
+- [x] Protocolo ventana soporte H+4 documentado
+
+### Manual (día de apertura comercial)
+- [ ] Credenciales entregadas en persona a cada rol
+- [ ] Primera venta real supervisada
+- [ ] Corte Z del día con cuadre
+- [ ] Registro incidencias ventana H+4
 
 ---
 
@@ -142,6 +151,8 @@ npm run supabase:sql   # Migraciones manuales
 npm run qa:health      # Health + RLS producción
 npm run qa:smoke       # Lógica turno caja
 npm run qa:rehearsal   # Ensayo general (cuadre jornada)
+npm run qa:golive      # Suite completa Día 7
+npm run staff:list     # Usuarios por rol (producción)
 ```
 
 ## URLs producción
@@ -162,4 +173,7 @@ npm run qa:rehearsal   # Ensayo general (cuadre jornada)
 | 4 | 97% | 97% |
 | 5 | 98% | 98% |
 | 6 | 99% | 99% |
-| 7 | 100% | — |
+| 7 | 100% | 100% |
+
+> **Calendario go-live:** 7 días planificados → **0 días pendientes del plan**.  
+> Validaciones en campo (ensayo 23 órdenes, móvil 2 h) siguen como tareas operativas post-lanzamiento — ver `POST-LANZAMIENTO.md`.

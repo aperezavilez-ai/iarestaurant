@@ -16,7 +16,9 @@
     "recreate:admin": "node scripts/recreate-admin.mjs",
     "qa:smoke": "node scripts/qa-smoke.mjs",
     "qa:health": "node scripts/qa-health.mjs",
-    "qa:rehearsal": "node scripts/qa-rehearsal.mjs"
+    "qa:rehearsal": "node scripts/qa-rehearsal.mjs",
+    "qa:golive": "node scripts/qa-golive.mjs",
+    "staff:list": "node scripts/list-staff.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

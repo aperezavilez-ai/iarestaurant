@@ -15,7 +15,8 @@
     "ensure:admin": "node scripts/ensure-admin.mjs",
     "recreate:admin": "node scripts/recreate-admin.mjs",
     "qa:smoke": "node scripts/qa-smoke.mjs",
-    "qa:health": "node scripts/qa-health.mjs"
+    "qa:health": "node scripts/qa-health.mjs",
+    "qa:rehearsal": "node scripts/qa-rehearsal.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

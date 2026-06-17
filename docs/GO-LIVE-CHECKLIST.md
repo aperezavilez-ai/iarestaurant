@@ -1,6 +1,6 @@
 # Checklist Go-Live — IA·RESTAURANT
 
-**Estado actual estimado:** 98%  
+**Estado actual estimado:** 99%  
 **Meta:** 100% operación comercial estable  
 **Última actualización:** 2026-06-16
 
@@ -107,22 +107,27 @@
 - [x] Protocolo impresión e internet en `docs/CONTINGENCIA.md`
 - [ ] Revisión manual errores consola en dispositivo real (operador)
 
-## Día 6 — Ensayo general
+## Día 6 — Ensayo general ✅ (guía + automatización)
 
-Simular jornada completa:
+**Guía:** `docs/ENSAYO-GENERAL.md` · **Operación 1 pág:** `docs/OPERACION-1PAGINA.md`
+
+### Automatizado
+- [x] `npm run qa:rehearsal` — 23 órdenes, movimientos, Corte X/Z, cuadre
+
+### Manual en producción (operador)
 - [ ] Apertura 08:00 · fondo $2,000
 - [ ] 20+ órdenes mixtas (mostrador + mesas)
 - [ ] 3 pedidos QR adicionales
 - [ ] 2 movimientos caja (entrada/salida)
 - [ ] Corte X intermedio
 - [ ] Cierre 23:00 · Corte Z
-- [ ] Cuadre: ventas turno = suma pagos
+- [ ] Cuadre: ventas turno = suma pagos · diferencia $0
 
 ## Día 7 — Go-live
 
 - [ ] Deploy final verificado (`npm run build` OK)
 - [ ] Credenciales por rol entregadas
-- [ ] Guía operación 1 página al equipo
+- [ ] Guía operación 1 página al equipo — `docs/OPERACION-1PAGINA.md`
 - [ ] Ventana soporte primeras 4 h
 - [ ] Lista mejoras post-lanzamiento (no bloqueantes)
 
@@ -136,6 +141,7 @@ npm run dev            # Pruebas locales
 npm run supabase:sql   # Migraciones manuales
 npm run qa:health      # Health + RLS producción
 npm run qa:smoke       # Lógica turno caja
+npm run qa:rehearsal   # Ensayo general (cuadre jornada)
 ```
 
 ## URLs producción
@@ -155,5 +161,5 @@ npm run qa:smoke       # Lógica turno caja
 | 3 | 95% | 95% |
 | 4 | 97% | 97% |
 | 5 | 98% | 98% |
-| 6 | 99% | — |
+| 6 | 99% | 99% |
 | 7 | 100% | — |

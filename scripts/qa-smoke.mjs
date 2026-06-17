@@ -1,34 +1,8 @@
 /**
  * Smoke tests para lógica de turno de caja (Día 2 go-live).
- * Ejecutar: node scripts/qa-smoke.mjs
+ * Ejecutar: npm run qa:smoke
  */
-
-function isShiftStale(openedAt, now = new Date()) {
-  const opened = new Date(openedAt)
-  return (
-    opened.getFullYear() !== now.getFullYear() ||
-    opened.getMonth() !== now.getMonth() ||
-    opened.getDate() !== now.getDate()
-  )
-}
-
-function computeShiftSummary(orders, payments, openedAt) {
-  const since = new Date(openedAt).getTime()
-  const shiftOrders = orders.filter(
-    (o) => o.status === 'cobrada' && new Date(o.updated_at || o.created_at).getTime() >= since
-  )
-  const orderIds = new Set(shiftOrders.map((o) => o.id))
-  const shiftPayments = payments.filter((p) => orderIds.has(p.order_id))
-  let cashSales = 0
-  for (const p of shiftPayments) {
-    if (p.method === 'efectivo') cashSales += p.amount
-  }
-  return {
-    totalSales: shiftOrders.reduce((s, o) => s + o.total, 0),
-    orderCount: shiftOrders.length,
-    cashSales,
-  }
-}
+import { isShiftStale, computeShiftSummary } from './lib/cashShiftLogic.mjs'
 
 const now = new Date('2026-06-16T14:00:00')
 const yesterday = '2026-06-15T22:00:00'

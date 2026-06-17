@@ -16,6 +16,7 @@ import { catalogRepository } from '@/repositories/catalogRepository'
 import { useLiveFlowStore } from '@/store/liveFlowStore'
 import { KITCHEN_CENTERS, itemMatchesCenter, getProductCategory, type KitchenCenterId } from '@/lib/productionCenters'
 import { whatsappService } from '@/services/whatsappService'
+import { emailService } from '@/services/emailService'
 import { getProductImageUrl } from '@/lib/productImages'
 import { formatCurrency } from '@/lib/utils'
 import type { Order, OrderItem, Product, RestaurantTable, PaymentMethod } from '@/types'
@@ -37,6 +38,11 @@ async function notifyOrderReady(ctx: TenantContext, title: string, message: stri
   } catch {
     /* alerta opcional */
   }
+  void emailService.sendAlert(ctx, {
+    type: 'order_ready',
+    title,
+    message,
+  }).catch(() => {})
 }
 
 export default function KitchenPage() {

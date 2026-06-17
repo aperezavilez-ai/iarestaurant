@@ -52,6 +52,16 @@ export interface WhatsAppConfig {
   alerts?: {
     order_ready?: boolean
     payment_complete?: boolean
+    security?: boolean
+  }
+}
+
+export interface EmailConfig {
+  alerts?: {
+    order_ready?: boolean
+    payment_complete?: boolean
+    daily_report?: boolean
+    staff_welcome?: boolean
   }
 }
 
@@ -79,6 +89,7 @@ export interface Organization {
   reports_email?: string
   payment_config?: PaymentConfig
   whatsapp_config?: WhatsAppConfig
+  email_config?: EmailConfig
   security_config?: SecurityConfig
   created_at: string
 }

@@ -6,6 +6,7 @@ import { opsBroadcast } from '@/services/opsBroadcast'
 import { inventoryRepository } from '@/repositories/inventoryRepository'
 import { crmRepository } from '@/repositories/crmRepository'
 import { whatsappService } from '@/services/whatsappService'
+import { emailService } from '@/services/emailService'
 import { withLocalFirst, withHybridList } from './base'
 import { isSupabaseConfigured } from '@/lib/config'
 import { generateFolio } from '@/lib/utils'
@@ -40,6 +41,11 @@ function freeTable(table: RestaurantTable): RestaurantTable {
 
 function notifyPaymentComplete(ctx: TenantContext, folio: string, total: number) {
   void whatsappService.sendAlert(ctx, {
+    type: 'payment_complete',
+    title: 'Cobro registrado',
+    message: `${folio} — $${total.toFixed(2)} MXN`,
+  }).catch(() => {})
+  void emailService.sendAlert(ctx, {
     type: 'payment_complete',
     title: 'Cobro registrado',
     message: `${folio} — $${total.toFixed(2)} MXN`,

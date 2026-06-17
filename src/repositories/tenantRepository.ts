@@ -2,7 +2,7 @@ import { tenantService } from '@/services/tenantService'
 import { localDb } from '@/lib/localDb'
 import { withLocalFirst } from './base'
 import { isSupabaseConfigured } from '@/lib/config'
-import type { Organization, Sucursal, Tenant, PaymentConfig, WhatsAppConfig } from '@/types'
+import type { Organization, Sucursal, Tenant, PaymentConfig, WhatsAppConfig, EmailConfig } from '@/types'
 import type { TenantContext } from '@/types/context'
 
 export interface BusinessProfile {
@@ -20,6 +20,7 @@ export interface BusinessSettingsInput {
   whatsappAlerts?: string
   reportsEmail?: string
   whatsappConfig?: WhatsAppConfig
+  emailConfig?: EmailConfig
   timezone?: string
   currency?: string
   taxRate?: number
@@ -77,6 +78,9 @@ export const tenantRepository = {
         whatsapp_config: data.whatsappConfig
           ? { ...organization.whatsapp_config, ...data.whatsappConfig }
           : organization.whatsapp_config,
+        email_config: data.emailConfig
+          ? { ...organization.email_config, ...data.emailConfig }
+          : organization.email_config,
       }
       await localDb.saveOrganization(organization)
     }
@@ -107,6 +111,7 @@ export const tenantRepository = {
             whatsapp_alerts: organization.whatsapp_alerts,
             reports_email: organization.reports_email,
             whatsapp_config: organization.whatsapp_config,
+            email_config: organization.email_config,
           })
         }
         if (sucursal) {

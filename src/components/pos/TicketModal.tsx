@@ -1,6 +1,9 @@
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency } from '@/lib/utils'
+import { printerService } from '@/services/printerService'
+import { useAuthStore } from '@/store/authStore'
+import { toast } from '@/components/ui/Toast'
 import type { BusinessBranding } from '@/lib/businessBranding'
 import type { Order, Payment } from '@/types'
 import { Printer, X } from 'lucide-react'
@@ -16,6 +19,7 @@ interface TicketModalProps {
 }
 
 export function TicketModal({ open, onClose, order, payment, tableLabel, change, business }: TicketModalProps) {
+  const sucursalId = useAuthStore((s) => s.sucursal?.id)
   if (!order) return null
 
   const brand = business || {
@@ -23,7 +27,46 @@ export function TicketModal({ open, onClose, order, payment, tableLabel, change,
     sucursalName: 'Sucursal Principal',
   }
 
-  const handlePrint = () => {
+  const buildJobLines = () => {
+    const lines: string[] = [
+      brand.sucursalName,
+      brand.address || '',
+      `Folio: ${order.folio}`,
+      `Mesa: ${tableLabel || 'Mostrador'}`,
+      new Date(order.created_at).toLocaleString('es-MX'),
+      '---',
+      ...(order.items || []).map((item) => `${item.quantity}x ${item.product_name}|${formatCurrency(item.subtotal)}`),
+      '---',
+      `Subtotal|${formatCurrency(order.subtotal)}`,
+    ]
+    if (order.discount > 0) lines.push(`Descuento|-${formatCurrency(order.discount)}`)
+    lines.push(`IVA|${formatCurrency(order.tax)}`)
+    lines.push(`>>TOTAL|${formatCurrency(order.total)}`)
+    if (payment) {
+      lines.push('---')
+      lines.push(`Pago: ${payment.method.toUpperCase()}`)
+      if (change != null && change > 0) lines.push(`Cambio: ${formatCurrency(change)}`)
+    }
+    lines.push('Gracias por su visita')
+    return lines.filter(Boolean)
+  }
+
+  const handlePrint = async () => {
+    const device = printerService.getDefault('caja', sucursalId)
+    if (device) {
+      try {
+        const result = await printerService.printTicket(device, {
+          title: brand.tenantName,
+          lines: buildJobLines(),
+        })
+        if (result.ok && result.method !== 'browser') {
+          toast(result.message || 'Ticket enviado a impresora', 'success')
+          return
+        }
+      } catch {
+        /* fallback navegador */
+      }
+    }
     window.print()
   }
 

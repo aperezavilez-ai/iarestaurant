@@ -19,6 +19,7 @@
     "qa:rehearsal": "node scripts/qa-rehearsal.mjs",
     "qa:split": "node scripts/qa-split.mjs",
     "qa:stripe-config": "node scripts/qa-stripe-config.mjs",
+    "qa:resend-config": "node scripts/qa-resend-config.mjs",
     "qa:golive": "node scripts/qa-golive.mjs",
     "staff:list": "node scripts/list-staff.mjs"
   },

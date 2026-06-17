@@ -3,7 +3,7 @@ import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { toast } from '@/components/ui/Toast'
-import { Building2, Globe, Bell, CreditCard, QrCode, MessageCircle, Send, Shield } from 'lucide-react'
+import { Building2, Globe, Bell, CreditCard, QrCode, MessageCircle, Send, Shield, Mail } from 'lucide-react'
 import { useLiveFlowStore } from '@/store/liveFlowStore'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/authStore'
@@ -13,7 +13,8 @@ import { catalogRepository } from '@/repositories/catalogRepository'
 import { tableRepository } from '@/repositories/tableRepository'
 import { whatsappService } from '@/services/whatsappService'
 import { Link } from 'react-router-dom'
-import type { Organization, WhatsAppConfig } from '@/types'
+import type { Organization, WhatsAppConfig, EmailConfig } from '@/types'
+import { emailService } from '@/services/emailService'
 
 export default function SettingsPage() {
   const { tenant, sucursal, setTenant } = useAuthStore()
@@ -34,9 +35,13 @@ export default function SettingsPage() {
     waAccessToken: '',
     alertOrderReady: true,
     alertPaymentComplete: false,
+    emailAlertOrderReady: false,
+    emailAlertPaymentComplete: false,
+    emailAlertDailyReport: true,
   })
   const [saving, setSaving] = useState(false)
   const [testingWa, setTestingWa] = useState(false)
+  const [testingEmail, setTestingEmail] = useState(false)
   const [usage, setUsage] = useState({ sucursales: 0, usuarios: 4, mesas: 0, productos: 0 })
 
   useEffect(() => {
@@ -45,6 +50,7 @@ export default function SettingsPage() {
       if (!profile) return
       setOrg(profile.organization)
       const wa = profile.organization?.whatsapp_config
+      const em = profile.organization?.email_config
       setForm({
         tenantName: profile.tenant.name,
         rfc: profile.organization?.rfc || '',
@@ -60,6 +66,9 @@ export default function SettingsPage() {
         waAccessToken: wa?.access_token || '',
         alertOrderReady: wa?.alerts?.order_ready !== false,
         alertPaymentComplete: wa?.alerts?.payment_complete === true,
+        emailAlertOrderReady: em?.alerts?.order_ready === true,
+        emailAlertPaymentComplete: em?.alerts?.payment_complete === true,
+        emailAlertDailyReport: em?.alerts?.daily_report !== false,
       })
     })
     Promise.all([
@@ -92,6 +101,13 @@ export default function SettingsPage() {
           payment_complete: form.alertPaymentComplete,
         },
       }
+      const emailConfig: EmailConfig = {
+        alerts: {
+          order_ready: form.emailAlertOrderReady,
+          payment_complete: form.emailAlertPaymentComplete,
+          daily_report: form.emailAlertDailyReport,
+        },
+      }
       const profile = await tenantRepository.updateBusiness(ctx, {
         tenantName: form.tenantName,
         rfc: form.rfc,
@@ -101,6 +117,7 @@ export default function SettingsPage() {
         whatsappAlerts: form.whatsappAlerts,
         reportsEmail: form.reportsEmail,
         whatsappConfig,
+        emailConfig,
         timezone: form.timezone,
         currency: form.currency,
         taxRate: Number.isFinite(taxRate) ? taxRate : 16,
@@ -112,6 +129,27 @@ export default function SettingsPage() {
       toast(e instanceof Error ? e.message : 'No se pudo guardar', 'error')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleTestEmail = async () => {
+    if (!ctx || !form.reportsEmail.trim()) {
+      toast('Configura el email de reportes y guarda', 'error')
+      return
+    }
+    setTestingEmail(true)
+    try {
+      await emailService.sendAlert(ctx, {
+        type: 'test',
+        title: 'Prueba IA·RESTAURANT',
+        message: `Correo de prueba para ${form.tenantName}. Resend configurado correctamente.`,
+        recipient: form.reportsEmail.trim(),
+      })
+      toast('Correo de prueba enviado', 'success')
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Error al enviar correo', 'error')
+    } finally {
+      setTestingEmail(false)
     }
   }
 
@@ -251,6 +289,30 @@ export default function SettingsPage() {
               />
               Cobro registrado en caja
             </label>
+          </div>
+
+          <div className="rounded-xl border border-dashed border-violet-200 p-4 space-y-3 bg-violet-50/30">
+            <p className="text-xs font-semibold text-slate-700 flex items-center gap-2">
+              <Mail size={14} className="text-violet-600" /> Correo (Resend)
+            </p>
+            <p className="text-[10px] text-slate-500 leading-relaxed">
+              Reportes, alertas y bienvenida de staff. El servidor usa Resend — configura RESEND_API_KEY en Vercel.
+            </p>
+            <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+              <input type="checkbox" checked={form.emailAlertOrderReady} onChange={(e) => setForm((f) => ({ ...f, emailAlertOrderReady: e.target.checked }))} className="rounded" />
+              Email cuando pedido listo en cocina
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+              <input type="checkbox" checked={form.emailAlertPaymentComplete} onChange={(e) => setForm((f) => ({ ...f, emailAlertPaymentComplete: e.target.checked }))} className="rounded" />
+              Email cuando se registra un cobro
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+              <input type="checkbox" checked={form.emailAlertDailyReport} onChange={(e) => setForm((f) => ({ ...f, emailAlertDailyReport: e.target.checked }))} className="rounded" />
+              Resumen diario por correo
+            </label>
+            <Button variant="outline" size="sm" loading={testingEmail} onClick={handleTestEmail}>
+              <Mail size={14} /> Enviar correo de prueba
+            </Button>
           </div>
 
           <div className="rounded-xl border border-dashed border-brand-200 p-4 space-y-3">

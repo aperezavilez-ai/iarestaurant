@@ -55,8 +55,17 @@
 ## Problemas frecuentes
 
 - **No deja cobrar** → abrir turno o cerrar turno de ayer (Corte Z)
-- **No imprime** → permitir ventanas emergentes en el navegador
+- **No imprime** → configurar impresora en **Operación → Impresión** (`/app/printing`); si no hay térmica, permitir ventanas emergentes
 - **QR no carga** → regenerar desde Caja → QR mesas
+- **No llegan correos** → Ajustes → Correo → prueba; verificar Resend en Vercel (`docs/RESEND-E-IMPRESORAS.md`)
+
+## Correo y impresoras
+
+| Tarea | Dónde |
+|-------|-------|
+| Activar alertas email + prueba | Ajustes → Correo |
+| Agregar impresora BT/WiFi | Operación → Impresión |
+| Guía completa Resend + marcas | `docs/RESEND-E-IMPRESORAS.md` |
 
 ## Contacto soporte
 

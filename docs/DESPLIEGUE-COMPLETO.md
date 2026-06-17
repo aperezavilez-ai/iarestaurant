@@ -65,6 +65,17 @@ Añade estas 3 (marca Production + Preview + Development):
 
 Luego: **Deployments → Redeploy** (necesario para que Vite incluya las variables en el build).
 
+### Correos (Resend) — servidor
+
+| Variable | Valor |
+|----------|-------|
+| `RESEND_API_KEY` | `re_…` (resend.com → API Keys) |
+| `RESEND_FROM_EMAIL` | `noreply@iarestaurant.mx` (dominio verificado) |
+| `RESEND_FROM_NAME` | `IA·RESTAURANT` |
+| `SUPABASE_SERVICE_ROLE_KEY` | service_role (requerido por `/api/email/send`) |
+
+Guía detallada: `docs/RESEND-E-IMPRESORAS.md` · validar: `npm run qa:resend-config`
+
 ---
 
 ## PASO 4 — Configurar Supabase

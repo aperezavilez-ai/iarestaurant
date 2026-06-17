@@ -22,6 +22,8 @@
 | 9 | 0 bugs críticos abiertos | ⬜ En curso |
 | 10 | Monitoreo y respaldo documentados | ✅ `docs/OBSERVABILIDAD.md` |
 | 11 | Seguridad Fase 2: IP allowlist + alertas + auditoría | ✅ Código + migración 022 |
+| 12 | Resend: correos transaccionales + alertas | ⬜ API key + dominio en Vercel |
+| 13 | Impresoras térmicas BT/WiFi | ⬜ Configurar en `/app/printing` por equipo |
 
 ---
 
@@ -157,8 +159,11 @@ npm run qa:rehearsal   # Ensayo general (cuadre jornada)
 npm run qa:split       # División de cuenta
 npm run qa:golive      # Suite completa Día 7
 npm run qa:stripe-config  # Variables Stripe SaaS
+npm run qa:resend-config  # Variables Resend
 npm run staff:list     # Usuarios por rol (producción)
 ```
+
+**Guías:** `docs/RESEND-E-IMPRESORAS.md` (correo + impresoras)
 
 ## URLs producción
 

@@ -42,6 +42,17 @@ Simula una **jornada completa** en producción antes del go-live. Duración esti
 | 9–12 | Mesas | 4 órdenes con mesero | Mixto |
 | 13–17 | POS mostrador | 5 órdenes rápidas | Mayoría efectivo |
 
+**Opcional — división de cuenta (recomendado antes de go-live):**
+
+| Escenario | Pasos | Pago |
+|-----------|-------|------|
+| Partes iguales | Mesa con orden → Dividir cuenta → 3 nombres → cobrar cada parte en POS | 1 efectivo, 1 tarjeta, 1 mixto |
+| Por ítems | Dividir cuenta → pestaña Por ítems → asignar productos → cobrar cada parte | Verificar Corte Z efectivo/tarjeta |
+
+```bash
+npm run qa:split   # Valida matemática de división + cuadre turno
+```
+
 **Cocina:** marcar cada pedido como listo en KDS  
 **Mesero:** verificar estado de mesas en piso
 
@@ -119,8 +130,10 @@ Ejemplo con datos del ensayo:
 
 ```bash
 npm run qa:rehearsal   # Cuadre lógico 23 órdenes + movimientos
+npm run qa:split       # División de cuenta + cuadre efectivo/tarjeta
 npm run qa:smoke       # Turno stale + resumen
 npm run qa:health      # Producción + RLS
+npm run qa:stripe-config  # Variables Stripe (antes de activar planes)
 ```
 
 ---
@@ -131,6 +144,7 @@ npm run qa:health      # Producción + RLS
 |------|-------------|------|-----|
 | Apertura $2,000 | | | ☐ |
 | 23 órdenes cobradas | | | ☐ |
+| División cuenta (3 partes) | | | ☐ |
 | 3 QR → cocina | | | ☐ |
 | 2 movimientos caja | | | ☐ |
 | Corte X impreso | | | ☐ |
@@ -148,6 +162,7 @@ Ver `docs/CONTINGENCIA.md` y `docs/OBSERVABILIDAD.md`.
 | POS bloqueado | Abrir turno o cerrar turno stale |
 | QR no llega a cocina | Verificar menú activo y realtime |
 | Diferencia en Corte Z | Recontar, revisar movimientos y cobros mixtos |
+| Cuenta dividida incompleta | Cobrar todas las partes antes de liberar mesa |
 | Sync pendiente en header | Esperar red, no cerrar hasta que baje a 0 |
 
 ---

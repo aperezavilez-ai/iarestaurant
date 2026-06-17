@@ -14,6 +14,7 @@
 | 2 | Popup bloqueante de apertura de turno al ingresar (roles caja/admin) | ✅ |
 | 3 | POS bloqueado sin turno abierto | ✅ |
 | 4 | Cobro efectivo / tarjeta / mixto | ⬜ Validar en producción |
+| 4b | División de cuenta (partes iguales + por ítems) | ⬜ Validar en producción |
 | 5 | Corte X y Corte Z con impresión | ⬜ Validar en producción |
 | 6 | QR comensal → cocina → cobro | ⬜ Validar en producción |
 | 7 | PWA reconexión a otra mesa | ⬜ Validar en producción |
@@ -113,6 +114,7 @@
 
 ### Automatizado
 - [x] `npm run qa:rehearsal` — 23 órdenes, movimientos, Corte X/Z, cuadre
+- [x] `npm run qa:split` — división de cuenta + cuadre turno
 
 ### Manual en producción (operador)
 - [ ] Apertura 08:00 · fondo $2,000
@@ -120,6 +122,7 @@
 - [ ] 3 pedidos QR adicionales
 - [ ] 2 movimientos caja (entrada/salida)
 - [ ] Corte X intermedio
+- [ ] División de cuenta: 3 partes (1 mesa, mixto de métodos)
 - [ ] Cierre 23:00 · Corte Z
 - [ ] Cuadre: ventas turno = suma pagos · diferencia $0
 
@@ -151,7 +154,9 @@ npm run supabase:sql   # Migraciones manuales
 npm run qa:health      # Health + RLS producción
 npm run qa:smoke       # Lógica turno caja
 npm run qa:rehearsal   # Ensayo general (cuadre jornada)
+npm run qa:split       # División de cuenta
 npm run qa:golive      # Suite completa Día 7
+npm run qa:stripe-config  # Variables Stripe SaaS
 npm run staff:list     # Usuarios por rol (producción)
 ```
 

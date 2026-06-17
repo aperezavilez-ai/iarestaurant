@@ -13,6 +13,13 @@
 3. En efectivo: ingresar monto recibido → confirmar cambio
 4. Ticket impreso automáticamente (permite pop-ups)
 
+## Dividir cuenta (mesa)
+
+1. **Mesas** → seleccionar mesa con orden → **Dividir cuenta**
+2. **Partes iguales** o **Por ítems** (asignar cada producto a un comensal)
+3. Cobrar **cada parte** por separado (efectivo / tarjeta / mixto en POS)
+4. La mesa se libera cuando todas las partes están cobradas
+
 ## Mesas y comensal
 
 - **Mesero:** Mesas & Piso → tomar pedido por mesa

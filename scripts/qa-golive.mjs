@@ -6,7 +6,8 @@ import { spawnSync } from 'node:child_process'
 
 const steps = [
   { name: 'qa:smoke', cmd: 'npm', args: ['run', 'qa:smoke'] },
-  { name: 'qa:rehearsal', cmd: 'npm', args: ['run', 'qa:rehearsal'] },
+    { name: 'qa:split', cmd: 'npm', args: ['run', 'qa:split'] },
+    { name: 'qa:rehearsal', cmd: 'npm', args: ['run', 'qa:rehearsal'] },
   { name: 'qa:health', cmd: 'npm', args: ['run', 'qa:health'] },
   { name: 'build', cmd: 'npm', args: ['run', 'build'] },
 ]

@@ -29,6 +29,7 @@ export const MODULE_GROUPS = [
   'Integraciones & Futuro',
 ] as const
 
+/** Catálogo completo (roadmap). No mostrar en UI — usar PRODUCTION_MODULES. */
 export const ALL_MODULES: ModuleDef[] = [
   // Operación core
   { id: 'dashboard', phase: 1, label: 'Centro de mando', path: '/app/dashboard', icon: Radar, group: 'Operación', roles: ['admin_saas','admin_restaurant','gerente','supervisor'], description: 'Dashboard ejecutivo con KPIs en vivo' },
@@ -89,10 +90,6 @@ export const ALL_MODULES: ModuleDef[] = [
   { id: 'customer-success', phase: 36, label: 'Customer Success', path: '/app/customer-success', icon: Sparkles, group: 'Integraciones & Futuro', roles: ['admin_saas'], description: 'Adopción, NPS, retención' },
 ]
 
-export function getDefaultModuleIdsForRole(role: string): string[] {
-  return ALL_MODULES.filter((m) => m.roles.includes(role)).map((m) => m.id)
-}
-
 export function userCanAccessModule(
   user: { role: string; allowed_modules?: string[] },
   module: ModuleDef
@@ -114,3 +111,7 @@ export const PRODUCTION_MODULE_IDS = new Set([
 ])
 
 export const PRODUCTION_MODULES = ALL_MODULES.filter((m) => PRODUCTION_MODULE_IDS.has(m.id))
+
+export function getDefaultModuleIdsForRole(role: string): string[] {
+  return PRODUCTION_MODULES.filter((m) => m.roles.includes(role)).map((m) => m.id)
+}

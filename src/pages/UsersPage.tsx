@@ -9,7 +9,7 @@ import { getRoleLabel } from '@/lib/utils'
 import { useTenantContext } from '@/hooks/useTenantContext'
 import { useAuthStore } from '@/store/authStore'
 import { userRepository } from '@/repositories/userRepository'
-import { ALL_MODULES, getDefaultModuleIdsForRole } from '@/config/modules'
+import { PRODUCTION_MODULES, getDefaultModuleIdsForRole } from '@/config/modules'
 import { ASSIGNABLE_STAFF_ROLES, type User, type UserRole } from '@/types'
 import { toast } from '@/components/ui/Toast'
 
@@ -109,7 +109,7 @@ export default function UsersPage() {
     }
   }
 
-  const moduleOptions = ALL_MODULES.filter((m) => m.roles.includes(role))
+  const moduleOptions = PRODUCTION_MODULES.filter((m) => m.roles.includes(role))
 
   return (
     <div className="space-y-5">

@@ -22,8 +22,9 @@
 | 9 | 0 bugs críticos abiertos | ⬜ En curso |
 | 10 | Monitoreo y respaldo documentados | ✅ `docs/OBSERVABILIDAD.md` |
 | 11 | Seguridad Fase 2: IP allowlist + alertas + auditoría | ✅ Código + migración 022 |
-| 12 | Resend: correos transaccionales + alertas | ⬜ API key + dominio en Vercel |
-| 13 | Impresoras térmicas BT/WiFi | ⬜ Configurar en `/app/printing` por equipo |
+| 12 | Resend: correos transaccionales + alertas | ✅ Dominio verificado + prueba enviada |
+| 13 | Stripe SaaS: checkout + webhook + 4 precios | ✅ QA local 6/6 variables |
+| 14 | Impresoras térmicas BT/WiFi | ⬜ Configurar en `/app/printing` por equipo |
 
 ---
 

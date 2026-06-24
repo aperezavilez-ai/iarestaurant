@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { ShieldAlert, Monitor, LogOut } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
@@ -32,20 +32,28 @@ const MESSAGES: Record<SecurityBlockReason, { title: string; body: string }> = {
 }
 
 export function DeviceGate({ children }: { children: React.ReactNode }) {
-  const { user, tenant, sucursal, isAuthenticated, logout } = useAuthStore()
-  const [checking, setChecking] = useState(true)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const userId = useAuthStore((s) => s.user?.id)
+  const tenantId = useAuthStore((s) => s.tenant?.id)
+  const sucursalId = useAuthStore((s) => s.sucursal?.id)
+  const user = useAuthStore((s) => s.user)
+  const tenant = useAuthStore((s) => s.tenant)
+  const [initializing, setInitializing] = useState(true)
   const [blockReason, setBlockReason] = useState<SecurityBlockReason | null>(null)
+  const verifiedOnceRef = useRef(false)
 
-  const verify = useCallback(async () => {
-    if (!isAuthenticated || !user || !tenant || !sucursal) {
+  const verify = useCallback(async (showLoader: boolean) => {
+    const { user: u, tenant: t, sucursal: s, isAuthenticated: authed } = useAuthStore.getState()
+    if (!authed || !u || !t || !s) {
       setBlockReason(null)
-      setChecking(false)
+      if (showLoader) setInitializing(false)
       return
     }
-    setChecking(true)
+    if (showLoader) setInitializing(true)
     try {
-      await securityRepository.enforceDeviceAccess({ user, tenant, sucursal })
+      await securityRepository.enforceDeviceAccess({ user: u, tenant: t, sucursal: s })
       setBlockReason(null)
+      verifiedOnceRef.current = true
     } catch (e) {
       if (e instanceof SecurityAccessError) {
         setBlockReason(e.reason)
@@ -54,15 +62,15 @@ export function DeviceGate({ children }: { children: React.ReactNode }) {
         setBlockReason(null)
       }
     } finally {
-      setChecking(false)
+      if (showLoader) setInitializing(false)
     }
-  }, [isAuthenticated, user, tenant, sucursal])
+  }, [userId, tenantId, sucursalId, isAuthenticated])
 
   useEffect(() => {
-    verify()
+    void verify(!verifiedOnceRef.current)
   }, [verify])
 
-  if (checking) {
+  if (initializing && !verifiedOnceRef.current) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-command-bg">
         <p className="text-sm text-slate-500 font-mono">Verificando licencia y equipo...</p>
@@ -84,13 +92,13 @@ export function DeviceGate({ children }: { children: React.ReactNode }) {
             <span>{tenant?.name} · {user?.full_name}</span>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="flex-1" onClick={verify}>
+            <Button variant="outline" className="flex-1" onClick={() => verify(false)}>
               Reintentar
             </Button>
             <Button
               variant="danger"
               className="flex-1"
-              onClick={() => { authRepository.signOut(); logout() }}
+              onClick={() => { authRepository.signOut(); useAuthStore.getState().logout() }}
             >
               <LogOut size={14} /> Salir
             </Button>

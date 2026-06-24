@@ -11,6 +11,25 @@ export interface AIInsight {
   action?: string
 }
 
+function insightsEqual(a: AIInsight[], b: AIInsight[]): boolean {
+  if (a.length !== b.length) return false
+  return a.every((item, i) => {
+    const other = b[i]
+    return item.id === other.id && item.title === other.title && item.message === other.message
+  })
+}
+
+function statsEqual(a: DashboardStats, b: DashboardStats): boolean {
+  return (
+    a.today_sales === b.today_sales &&
+    a.today_orders === b.today_orders &&
+    a.active_tables === b.active_tables &&
+    a.total_tables === b.total_tables &&
+    a.pending_orders === b.pending_orders &&
+    a.avg_ticket === b.avg_ticket
+  )
+}
+
 export function useLiveOps() {
   const ctx = useTenantContext()
   const [stats, setStats] = useState<DashboardStats | null>(null)
@@ -20,8 +39,9 @@ export function useLiveOps() {
     if (!ctx) return
     const load = async () => {
       const s = await dashboardRepository.getStats(ctx)
-      setStats(s)
-      setInsights(generateInsights(s))
+      setStats((prev) => (prev && statsEqual(prev, s) ? prev : s))
+      const next = generateInsights(s)
+      setInsights((prev) => (insightsEqual(prev, next) ? prev : next))
     }
     load()
     const interval = setInterval(load, 15000)

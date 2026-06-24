@@ -11,8 +11,9 @@ export function useCashShiftGate() {
   const userRole = useAuthStore((s) => s.user?.role)
   const [register, setRegister] = useState<CashRegister | null>(null)
   const [stale, setStale] = useState(false)
-  const [checking, setChecking] = useState(true)
+  const [ready, setReady] = useState(false)
   const mountedRef = useRef(true)
+  const readyRef = useRef(false)
 
   const mustOpenShift = requiresCashShift(userRole)
 
@@ -20,10 +21,11 @@ export function useCashShiftGate() {
     if (!ctx || !mustOpenShift) {
       setRegister(null)
       setStale(false)
-      setChecking(false)
+      setReady(true)
+      readyRef.current = true
       return null
     }
-    if (!options?.silent) setChecking(true)
+    const silent = options?.silent ?? readyRef.current
     try {
       const state = await cashRepository.getActiveShift(ctx)
       if (!mountedRef.current) return state.register
@@ -31,13 +33,16 @@ export function useCashShiftGate() {
       setStale(state.stale)
       return state.register
     } finally {
-      if (mountedRef.current) setChecking(false)
+      if (mountedRef.current) {
+        readyRef.current = true
+        setReady(true)
+      }
     }
   }, [ctx, mustOpenShift])
 
   useEffect(() => {
     mountedRef.current = true
-    refresh()
+    void refresh()
     return () => { mountedRef.current = false }
   }, [refresh])
 
@@ -50,15 +55,15 @@ export function useCashShiftGate() {
   useEffect(() => onShiftChanged(() => { void refresh({ silent: true }) }), [refresh])
 
   const shiftOpen = !!register && !stale
-  const blocked = mustOpenShift && !checking && !shiftOpen
+  const blocked = mustOpenShift && ready && !shiftOpen
 
   return {
     mustOpenShift,
     shiftOpen,
     blocked,
     stale,
-    checking,
+    checking: !ready,
     register,
-    refresh,
+    refresh: () => refresh({ silent: true }),
   }
 }

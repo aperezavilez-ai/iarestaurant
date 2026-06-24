@@ -61,13 +61,12 @@ export function AICopilot({ insights, collapsed, onToggle }: AICopilotProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        {insights.map((insight, i) => {
+        {insights.map((insight) => {
           const Icon = ICONS[insight.type]
           return (
             <div
               key={insight.id}
-              className={cn('p-3 rounded-xl border animate-fadeUp', COLORS[insight.type])}
-              style={{ animationDelay: `${i * 80}ms` }}
+              className={cn('p-3 rounded-xl border', COLORS[insight.type])}
             >
               <div className="flex items-start gap-2">
                 <Icon size={14} className="shrink-0 mt-0.5" />

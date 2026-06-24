@@ -3,16 +3,14 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { LogOut, Bell } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
 import { CommandNav, CommandMobileNav } from './CommandNav'
-import { AICopilot } from '@/components/ai/AICopilot'
 import { useAuthStore } from '@/store/authStore'
 import { authRepository } from '@/repositories/authRepository'
-import { useLiveOps } from '@/hooks/useLiveOps'
-import { formatCurrency } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { ConnectionStatus } from '@/components/system/ConnectionStatus'
 import { PageBack, getPageBackTarget } from './PageBack'
 import { ShiftOpenGate } from '@/components/cash/ShiftOpenGate'
 import { useCashShiftGate } from '@/hooks/useCashShiftGate'
+import { CommandHeaderKpis, CommandCopilotPanel } from '@/components/layout/CommandHeaderLive'
 
 const PAGE_META: Record<string, { title: string; zone: string }> = {
   '/app/dashboard': { title: 'Centro de mando', zone: 'COMANDO' },
@@ -46,7 +44,6 @@ const PAGE_META: Record<string, { title: string; zone: string }> = {
 export function CommandShell() {
   const location = useLocation()
   const { user, tenant, logout } = useAuthStore()
-  const { stats, insights } = useLiveOps()
   const [copilotOpen, setCopilotOpen] = useState(true)
   const { blocked, stale, register: openRegister, refresh, shiftOpen, mustOpenShift } = useCashShiftGate()
 
@@ -90,14 +87,7 @@ export function CommandShell() {
             <Logo size="sm" showTagline />
           </div>
           <div className="hidden lg:flex items-center gap-3 text-xs">
-            {stats && (
-              <>
-                <KPI label="Ventas hoy" value={formatCurrency(stats.today_sales)} accent />
-                <KPI label="Mesas" value={`${stats.active_tables}/${stats.total_tables}`} />
-                <KPI label="Órdenes" value={String(stats.pending_orders)} warn={stats.pending_orders > 2} />
-                <KPI label="Ticket" value={formatCurrency(stats.avg_ticket)} />
-              </>
-            )}
+            <CommandHeaderKpis />
           </div>
           <div className="flex items-center gap-2">
             <div className="hidden sm:block">
@@ -116,9 +106,6 @@ export function CommandShell() {
             )}
             <button className="p-2 rounded-lg hover:bg-brand-50 text-slate-500 relative">
               <Bell size={16} />
-              {insights.some(i => i.type === 'alert') && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-ops-danger rounded-full" />
-              )}
             </button>
             <div className="flex items-center gap-2 pl-2 border-l border-command-border">
               <div className="flex flex-col items-center gap-1 min-w-0 max-w-[120px]">
@@ -157,7 +144,7 @@ export function CommandShell() {
             <h1 className="text-base sm:text-xl font-black text-slate-800 truncate">{meta.title}</h1>
           </div>
         </div>
-        {isPOS && stats && (
+        {isPOS && (
           <p className="text-xs font-mono text-slate-500">
             Folio · <span className="text-brand-600 font-bold">AUTO</span>
           </p>
@@ -173,9 +160,10 @@ export function CommandShell() {
         </main>
         <div className="hidden xl:block">
           {showCopilot && (
-            copilotOpen
-              ? <AICopilot insights={insights} onToggle={() => setCopilotOpen(false)} />
-              : <AICopilot insights={insights} collapsed onToggle={() => setCopilotOpen(true)} />
+            <CommandCopilotPanel
+              collapsed={!copilotOpen}
+              onToggle={() => setCopilotOpen((v) => !v)}
+            />
           )}
         </div>
       </div>
@@ -186,16 +174,3 @@ export function CommandShell() {
   )
 }
 
-function KPI({ label, value, accent, warn }: { label: string; value: string; accent?: boolean; warn?: boolean }) {
-  return (
-    <div className="text-center px-3 py-1.5 rounded-xl bg-white border border-command-border shadow-card">
-      <p className="text-[10px] text-slate-500 uppercase tracking-wider">{label}</p>
-      <p className={cn(
-        'font-mono font-bold text-sm',
-        warn ? 'text-ops-danger' : accent ? 'text-brand-600' : 'text-slate-700'
-      )}>
-        {value}
-      </p>
-    </div>
-  )
-}

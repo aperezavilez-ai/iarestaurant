@@ -2,6 +2,8 @@ import { cn } from '@/lib/utils'
 import { X } from 'lucide-react'
 import { useEffect } from 'react'
 
+let scrollLockCount = 0
+
 interface ModalProps {
   open: boolean
   onClose: () => void
@@ -15,9 +17,16 @@ interface ModalProps {
 
 export function Modal({ open, onClose, title, children, size = 'md', dark, blocking }: ModalProps) {
   useEffect(() => {
-    if (open) document.body.style.overflow = 'hidden'
-    else document.body.style.overflow = ''
-    return () => { document.body.style.overflow = '' }
+    if (!open) return
+    scrollLockCount += 1
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      scrollLockCount = Math.max(0, scrollLockCount - 1)
+      if (scrollLockCount === 0) {
+        document.body.style.overflow = prevOverflow
+      }
+    }
   }, [open])
 
   if (!open) return null

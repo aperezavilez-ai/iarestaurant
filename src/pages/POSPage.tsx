@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, memo } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import {
   Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, Banknote,
@@ -40,9 +40,12 @@ const PROMO_CODES: Record<string, { percent: number; label: string }> = {
   COMBO15: { percent: 15, label: 'Combo Familiar' },
 }
 
-export default function POSPage() {
+function POSPage() {
   const ctx = useTenantContext()
-  const { tenant, sucursal } = useAuthStore()
+  const tenantId = useAuthStore((s) => s.tenant?.id)
+  const sucursalId = useAuthStore((s) => s.sucursal?.id)
+  const tenant = useAuthStore((s) => s.tenant)
+  const sucursal = useAuthStore((s) => s.sucursal)
   const [businessBranding, setBusinessBranding] = useState(buildBusinessBranding(tenant, sucursal))
   const [searchParams] = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
@@ -121,7 +124,7 @@ export default function POSPage() {
         setBusinessBranding(buildBusinessBranding(profile.tenant, profile.sucursal, profile.organization))
       }
     })
-  }, [ctx, tenant, sucursal])
+  }, [ctx, tenantId, sucursalId])
 
   useEffect(() => {
     const mesa = searchParams.get('mesa')
@@ -733,3 +736,5 @@ export default function POSPage() {
     </div>
   )
 }
+
+export default memo(POSPage)

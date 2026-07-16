@@ -5,13 +5,20 @@ export const DEMO_ORG_ID = '00000000-0000-0000-0000-000000000003'
 /** Dominio de producción (Vercel: apex redirige a www) */
 export const PRODUCTION_APP_URL = 'https://www.iarestaurant.mx'
 
-/** Ref público del proyecto Supabase (demo/producción) */
-export const SUPABASE_PROJECT_URL = 'https://pssycnwgolxiwoyzdsdg.supabase.co'
+/** Endpoint público del proyecto Supabase de producción. */
+export const SUPABASE_PROJECT_URL = 'https://supabase.gafcore.com/iarestaurant'
 
 export function resolveSupabaseUrl(): string {
   const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim() || ''
-  if (url.includes('.supabase.co') && !url.includes('tu-proyecto') && !url.includes('your-project')) {
-    return url.replace(/\/$/, '')
+  if (url && !url.includes('tu-proyecto') && !url.includes('your-project')) {
+    try {
+      const parsed = new URL(url)
+      if (parsed.protocol === 'https:' || parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+        return url.replace(/\/$/, '')
+      }
+    } catch {
+      // Fall back to the production endpoint below.
+    }
   }
   return SUPABASE_PROJECT_URL
 }

@@ -41,6 +41,7 @@ import FinancePage from '@/pages/FinancePage'
 import SubscriptionsPage from '@/pages/SubscriptionsPage'
 import SaasAdminPage from '@/pages/SaasAdminPage'
 import SecurityPage from '@/pages/SecurityPage'
+import IASupportPage from '@/pages/IASupportPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
@@ -94,6 +95,7 @@ export default function App() {
             <Route path="subscriptions" element={<SubscriptionsPage />} />
             <Route path="saas" element={<SaasAdminPage />} />
             <Route path="security" element={<SecurityPage />} />
+            <Route path="ia" element={<IASupportPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

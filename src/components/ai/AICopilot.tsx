@@ -78,6 +78,7 @@ export function AICopilot({ insights, collapsed, onToggle }: AICopilotProps) {
                       onClick={() => {
                         if (insight.action === 'Ver cocina') navigate('/app/kitchen')
                         else if (insight.action === 'Ir a POS') navigate('/app/pos')
+                        else if (insight.action === 'IA-Support') navigate('/app/ia')
                       }}
                       className="mt-2 flex items-center gap-1 text-[10px] font-bold text-ai-600 hover:text-ai-500 uppercase tracking-wider"
                     >
@@ -92,6 +93,13 @@ export function AICopilot({ insights, collapsed, onToggle }: AICopilotProps) {
         {insights.length === 0 && (
           <p className="text-xs text-slate-500 text-center py-8">Sin alertas — operación estable</p>
         )}
+        <button
+          type="button"
+          onClick={() => navigate('/app/ia')}
+          className="w-full mt-2 text-xs font-bold text-brand-700 border border-brand-200 rounded-xl py-2.5 hover:bg-brand-50"
+        >
+          Abrir IA-Support (guía 0–100%)
+        </button>
       </div>
     </aside>
   )

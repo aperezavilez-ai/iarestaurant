@@ -9,6 +9,7 @@ const steps = [
     { name: 'qa:split', cmd: 'npm', args: ['run', 'qa:split'] },
     { name: 'qa:rehearsal', cmd: 'npm', args: ['run', 'qa:rehearsal'] },
   { name: 'qa:health', cmd: 'npm', args: ['run', 'qa:health'] },
+  { name: 'qa:ia-support', cmd: 'npm', args: ['run', 'qa:ia-support'] },
   { name: 'build', cmd: 'npm', args: ['run', 'build'] },
 ]
 

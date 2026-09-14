@@ -10,7 +10,7 @@
     "supabase:admin": "node scripts/supabase-admin.mjs",
     "supabase:sql": "node scripts/run-sql.mjs",
     "supabase:staff": "node scripts/seed-staff.mjs",
-    "supabase:link": "npx supabase link --project-ref pssycnwgolxiwoyzdsdg",
+    "supabase:link": "node scripts/supabase-selfhosted-info.mjs",
     "configure:domain": "node scripts/configure-domain.mjs",
     "ensure:admin": "node scripts/ensure-admin.mjs",
     "recreate:admin": "node scripts/recreate-admin.mjs",
@@ -20,6 +20,7 @@
     "qa:split": "node scripts/qa-split.mjs",
     "qa:stripe-config": "node scripts/qa-stripe-config.mjs",
     "qa:resend-config": "node scripts/qa-resend-config.mjs",
+    "qa:ia-support": "node scripts/qa-ia-support.mjs",
     "qa:golive": "node scripts/qa-golive.mjs",
     "staff:list": "node scripts/list-staff.mjs"
   },

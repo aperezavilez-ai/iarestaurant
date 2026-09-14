@@ -11,8 +11,8 @@
 | # | Criterio | Estado |
 |---|----------|--------|
 | 1 | Login estable sin errores IndexedDB | ✅ |
-| 2 | Popup bloqueante de apertura de turno al ingresar (roles caja/admin) | ✅ |
-| 3 | POS bloqueado sin turno abierto | ✅ |
+| 2 | Popup bloqueante de apertura de turno al ingresar (roles caja: cajero/gerente/supervisor) | ✅ Admin exento |
+| 3 | POS bloqueado sin turno abierto | ✅ (roles de caja) |
 | 4 | Cobro efectivo / tarjeta / mixto | ⬜ Validar en producción |
 | 4b | División de cuenta (partes iguales + por ítems) | ⬜ Validar en producción |
 | 5 | Corte X y Corte Z con impresión | ⬜ Validar en producción |

@@ -1,10 +1,12 @@
 # IA·RESTAURANT — Guía rápida de operación
 
-## Inicio de turno (cajero / admin)
+## Inicio de turno (cajero / gerente / supervisor)
 
 1. Entrar en https://www.iarestaurant.mx/login
 2. Completar popup: **hora de apertura** + **fondo en efectivo**
 3. Confirmar badge verde **Turno abierto** en la barra superior
+
+**Admin restaurante:** entra a revisar y configurar **sin** abrir turno. El turno aplica solo a roles operativos de caja.
 
 ## Cobrar en POS
 

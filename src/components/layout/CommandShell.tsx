@@ -39,6 +39,7 @@ const PAGE_META: Record<string, { title: string; zone: string }> = {
   '/app/printing': { title: 'Impresión', zone: 'OPERACIÓN' },
   '/app/saas': { title: 'Panel SaaS', zone: 'PLATAFORMA' },
   '/app/security': { title: 'Seguridad', zone: 'SISTEMA' },
+  '/app/ia': { title: 'IA-Support', zone: 'INTELIGENCIA' },
 }
 
 export function CommandShell() {

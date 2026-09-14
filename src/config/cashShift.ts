@@ -1,8 +1,10 @@
 import type { UserRole } from '@/types'
 
-/** Roles que deben abrir turno de caja antes de operar el panel */
+/**
+ * Roles operativos que deben abrir turno de caja antes de cobrar/POS.
+ * admin_restaurant y admin_saas NO: entran a revisar, configurar y supervisar.
+ */
 export const SHIFT_REQUIRED_ROLES: UserRole[] = [
-  'admin_restaurant',
   'gerente',
   'supervisor',
   'cajero',

@@ -7,7 +7,7 @@
 
 | Rol | Email | Pantallas |
 |-----|-------|-----------|
-| `admin_restaurant` | admin@iarestaurant.mx | Dashboard, POS, Caja, Catálogo, Equipo, Seguridad, Ajustes |
+| `admin_restaurant` | alfonsoavilery@icloud.com | Dashboard, POS, Caja, Catálogo, Equipo, Seguridad, Ajustes, IA-Support |
 | `cajero` | cajero@iarestaurant.com | POS, Caja, Historial ventas |
 | `mesero` | mesero@iarestaurant.com | Mesas & Piso, Mesero móvil |
 | `cocina` | cocina@iarestaurant.com | Cocina KDS |

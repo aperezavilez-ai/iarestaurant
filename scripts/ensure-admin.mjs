@@ -1,6 +1,9 @@
 /**
- * Asegura cuenta admin en Supabase Auth + perfil public.users
+ * Asegura cuenta admin propietaria en Supabase Auth + perfil public.users
  * Uso: node scripts/ensure-admin.mjs
+ *
+ * Credenciales por defecto (override con ADMIN_EMAIL / ADMIN_PASSWORD en .env):
+ *   alfonsoavilery@icloud.com
  */
 import { loadEnv } from './load-env.mjs'
 import { createClient } from '@supabase/supabase-js'
@@ -9,10 +12,12 @@ loadEnv()
 
 const url = process.env.VITE_SUPABASE_URL
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase() || 'alfonsoavilery@icloud.com'
+const adminPassword = process.env.ADMIN_PASSWORD || 'Calurore1028@'
 const ADMIN = {
-  email: 'admin@iarestaurant.mx',
-  password: 'AdminIAR2026!',
-  full_name: 'Alfonso Admin',
+  email: adminEmail,
+  password: adminPassword,
+  full_name: 'Alfonso Avilery',
   role: 'admin_restaurant',
   tenant_id: '00000000-0000-0000-0000-000000000001',
   sucursal_id: '00000000-0000-0000-0000-000000000002',
@@ -27,7 +32,7 @@ const admin = createClient(url, key, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
-const { data: list } = await admin.auth.admin.listUsers()
+const { data: list } = await admin.auth.admin.listUsers({ perPage: 200 })
 let user = list?.users?.find((u) => u.email?.toLowerCase() === ADMIN.email)
 
 if (!user) {
@@ -44,8 +49,10 @@ if (!user) {
   await admin.auth.admin.updateUserById(user.id, {
     password: ADMIN.password,
     email_confirm: true,
+    ban_duration: 'none',
+    user_metadata: { full_name: ADMIN.full_name, role: ADMIN.role },
   })
-  console.log('Admin actualizado (password + confirmado):', user.id)
+  console.log('Admin restaurado (activo + password):', user.id)
 }
 
 const { error: profileErr } = await admin.from('users').upsert({
@@ -60,6 +67,18 @@ const { error: profileErr } = await admin.from('users').upsert({
 
 if (profileErr) throw profileErr
 console.log('Perfil public.users OK')
+
+const anon = createClient(url, process.env.VITE_SUPABASE_ANON_KEY, {
+  auth: { autoRefreshToken: false, persistSession: false },
+})
+const { error: loginErr } = await anon.auth.signInWithPassword({
+  email: ADMIN.email,
+  password: ADMIN.password,
+})
+if (loginErr) {
+  console.error('Login verificación FALLÓ:', loginErr.message)
+  process.exit(1)
+}
+console.log('Login verificado OK')
 console.log('\nAcceso admin:')
 console.log('  Email:', ADMIN.email)
-console.log('  Pass: ', ADMIN.password)

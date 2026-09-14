@@ -35,7 +35,7 @@ Entregar a cada persona:
 
 | Rol | Email producción | Acceso principal |
 |-----|------------------|------------------|
-| Admin restaurante | `admin@iarestaurant.mx` | Todo + Seguridad + Ajustes |
+| Admin restaurante | `alfonsoavilery@icloud.com` | Todo + Seguridad + Ajustes + IA |
 | Cajero | `cajero@iarestaurant.com` | POS, Caja, Turno |
 | Mesero | `mesero@iarestaurant.com` | Mesas, Piso |
 | Cocina | `cocina@iarestaurant.com` | KDS |

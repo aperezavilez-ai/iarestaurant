@@ -6,25 +6,19 @@ import { isSupabaseConfigured } from '@/lib/config'
 import { localDb } from '@/lib/localDb'
 import type { User, Tenant, Sucursal } from '@/types'
 
-const ADMIN_EMAIL = 'admin@iarestaurant.mx'
-const RETIRED_ADMIN_EMAILS = ['alfonsoavilery@icloud.com', 'alfonsoaviler@icloud.com']
+/** Admin propietario — no sustituir por otras cuentas */
+export const ADMIN_EMAIL = 'alfonsoavilery@icloud.com'
 
 function normalizeLoginError(email: string, err: unknown): Error {
   const normalized = email.trim().toLowerCase()
-  if (normalized === 'alfonsoaviler@icloud.com') {
-    return new Error(`Correo incorrecto. Usa: ${ADMIN_EMAIL}`)
-  }
-  if (RETIRED_ADMIN_EMAILS.includes(normalized)) {
-    return new Error(`Cuenta desactivada. Usa: ${ADMIN_EMAIL} · contraseña AdminIAR2026!`)
-  }
   if (err instanceof Error) {
     const msg = err.message
     if (msg.toLowerCase().includes('banned')) {
-      return new Error(`Cuenta anterior desactivada. Usa: ${ADMIN_EMAIL} · contraseña AdminIAR2026!`)
+      return new Error('Cuenta desactivada. Contacta soporte IA·RESTAURANT.')
     }
     if (msg.toLowerCase().includes('invalid login')) {
       if (normalized === ADMIN_EMAIL) {
-        return new Error('Contraseña incorrecta. Admin: AdminIAR2026! (con 2026, no 2024)')
+        return new Error('Contraseña incorrecta para la cuenta administrador.')
       }
       return new Error('Correo o contraseña incorrectos')
     }
@@ -55,6 +49,9 @@ async function persistBusinessContext(tenantId: string, sucursalId?: string) {
 }
 
 async function buildSession(profile: User): Promise<AuthSession | null> {
+  if (profile.is_active === false) {
+    throw new Error('Cuenta desactivada. Contacta al administrador para reactivar el acceso.')
+  }
   const tenant = await tenantService.getTenant(profile.tenant_id)
   const sucursal = profile.sucursal_id
     ? await tenantService.getSucursal(profile.sucursal_id)
@@ -85,7 +82,7 @@ export const authRepository = {
 
     try {
       const { user: authUser } = await authService.signIn(normalizedEmail, password)
-      const profile = await authService.getUserProfile(authUser.id)
+      const profile = await authService.getUserProfile(authUser.id, authUser.email ?? normalizedEmail)
       if (!profile) throw new Error('Perfil no encontrado en el sistema')
       const session = await buildSession(profile)
       if (!session) throw new Error('Tenant o sucursal no encontrados')
@@ -113,7 +110,7 @@ export const authRepository = {
     try {
       const session = await authService.getSession()
       if (!session?.user) return null
-      const profile = await authService.getUserProfile(session.user.id)
+      const profile = await authService.getUserProfile(session.user.id, session.user.email)
       if (!profile) return null
       return buildSession(profile)
     } catch {

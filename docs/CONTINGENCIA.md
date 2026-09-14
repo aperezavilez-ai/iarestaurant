@@ -32,7 +32,7 @@
 
 1. Verifica correo y contraseña.
 2. Si persiste: limpia caché del sitio o prueba ventana de incógnito.
-3. Admin: `admin@iarestaurant.mx` (credencial de despliegue).
+3. Admin: `alfonsoavilery@icloud.com` (credencial propietaria).
 
 ## QR comensal no carga
 

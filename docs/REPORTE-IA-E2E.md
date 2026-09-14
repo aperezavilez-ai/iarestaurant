@@ -81,7 +81,7 @@ npm run build
 
 ## 6. Cómo probar ahora (admin)
 
-1. https://www.iarestaurant.mx/login → `admin@iarestaurant.mx`
+1. https://www.iarestaurant.mx/login → `alfonsoavilery@icloud.com`
 2. **No** debe aparecer modal de apertura/cierre de turno
 3. Abrir **Módulos → IA-Support** o `/app/ia`
 4. Preguntar: «¿Cómo funciona el QR?» / «¿Cómo cobro en POS?»

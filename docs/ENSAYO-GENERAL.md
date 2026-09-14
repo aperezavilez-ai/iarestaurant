@@ -6,7 +6,7 @@ Simula una **jornada completa** en producción antes del go-live. Duración esti
 
 | Rol | Usuario sugerido | Pantallas |
 |-----|-------------------|-----------|
-| Cajero / Admin | `admin@iarestaurant.mx` | POS, Caja, Turno |
+| Cajero / Admin | `alfonsoavilery@icloud.com` (admin) · `cajero@…` | POS, Caja, Turno (cajero) |
 | Mesero | usuario mesero | Mesas, Piso |
 | Cocina | usuario cocina | KDS |
 

@@ -12,7 +12,7 @@ const key = process.env.SUPABASE_SERVICE_ROLE_KEY
 const anon = process.env.VITE_SUPABASE_ANON_KEY
 
 const DEMO_USERS = [
-  { email: 'admin@iarestaurant.mx', password: 'AdminIAR2026!', role: 'admin_restaurant' },
+  { email: 'alfonsoavilery@icloud.com', password: 'Calurore1028@', role: 'admin_restaurant' },
   { email: 'cajero@iarestaurant.com', password: 'demo123', role: 'cajero' },
   { email: 'mesero@iarestaurant.com', password: 'demo123', role: 'mesero' },
   { email: 'cocina@iarestaurant.com', password: 'demo123', role: 'cocina' },
@@ -59,4 +59,4 @@ for (const demo of DEMO_USERS) {
   await client.auth.signOut()
 }
 
-console.log('\nListo. Admin: admin@iarestaurant.mx / AdminIAR2026!')
+console.log('\nListo. Admin: alfonsoavilery@icloud.com')

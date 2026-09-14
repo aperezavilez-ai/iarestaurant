@@ -18,6 +18,7 @@ Sistema operativo para restaurantes: POS, mesas, cocina KDS, caja, QR, seguridad
 
 ## Completado (2026-09-14)
 
+- [x] Admin propietario restaurado: `alfonsoavilery@icloud.com` (sin ban; scripts ya no migran a admin@iarestaurant.mx)
 - [x] Admin **sin** apertura de turno obligatoria (solo cajero/gerente/supervisor)
 - [x] Turno stale (ago 2026) cerrado en producción
 - [x] IA-Support productivo (`/app/ia`) con conocimiento 0–100% del sistema

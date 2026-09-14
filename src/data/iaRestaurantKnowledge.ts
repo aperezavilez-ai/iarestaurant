@@ -47,7 +47,7 @@ export const IA_RESTAURANT_KNOWLEDGE: KnowledgeChunk[] = [
     title: 'Cómo entrar',
     keywords: ['login', 'entrar', 'acceso', 'correo', 'contraseña', 'iniciar sesión'],
     content:
-      'Entra en /login con tu correo de rol (admin, cajero, mesero, cocina). Admin de plataforma: admin@iarestaurant.mx. El admin NO necesita abrir turno de caja para revisar; cajero/gerente/supervisor sí antes de cobrar.',
+      'Entra en /login con tu correo de rol. Admin propietario: alfonsoavilery@icloud.com. El admin NO necesita abrir turno de caja para revisar; cajero/gerente/supervisor sí antes de cobrar.',
     paths: ['/login'],
   },
   {

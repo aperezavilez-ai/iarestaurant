@@ -34,11 +34,24 @@ export const authService = {
     const { data: { session } } = await supabase.auth.getSession()
     return session
   },
-  async getUserProfile(userId: string): Promise<User | null> {
-    const { data, error } = await supabase
-      .from('users').select('*').eq('id', userId).single()
-    if (error) return null
-    return data
+  async getUserProfile(userId: string, email?: string | null): Promise<User | null> {
+    const byId = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle()
+    if (byId.data) return byId.data
+
+    const normalizedEmail = email?.trim().toLowerCase()
+    if (!normalizedEmail) return null
+
+    const byEmail = await supabase
+      .from('users')
+      .select('*')
+      .ilike('email', normalizedEmail)
+      .maybeSingle()
+    if (byEmail.error) return null
+    return byEmail.data
   },
   async resetPassword(email: string) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {

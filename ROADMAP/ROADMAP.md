@@ -19,6 +19,7 @@ Sistema operativo para restaurantes: POS, mesas, cocina KDS, caja, QR, seguridad
 ## Completado (2026-09-14)
 
 - [x] Admin propietario restaurado: `alfonsoavilery@icloud.com` (sin ban; scripts ya no migran a admin@iarestaurant.mx)
+- [x] Vercel env GafCore corregido: `VITE_SUPABASE_URL=…/iarestaurant`, anon key alineada, `SUPABASE_SERVICE_ROLE_KEY` sin “Needs Attention”
 - [x] Admin **sin** apertura de turno obligatoria (solo cajero/gerente/supervisor)
 - [x] Turno stale (ago 2026) cerrado en producción
 - [x] IA-Support productivo (`/app/ia`) con conocimiento 0–100% del sistema

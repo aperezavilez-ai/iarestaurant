@@ -81,8 +81,13 @@ export const authRepository = {
     const normalizedEmail = email.trim().toLowerCase()
 
     try {
-      const { user: authUser } = await authService.signIn(normalizedEmail, password)
-      const profile = await authService.getUserProfile(authUser.id, authUser.email ?? normalizedEmail)
+      const { user: authUser, session: authSession } = await authService.signIn(normalizedEmail, password)
+      if (!authUser?.id) throw new Error('No se pudo autenticar el usuario')
+      const profile = await authService.getUserProfile(
+        authUser.id,
+        authUser.email ?? normalizedEmail,
+        authSession?.access_token,
+      )
       if (!profile) throw new Error('Perfil no encontrado en el sistema')
       const session = await buildSession(profile)
       if (!session) throw new Error('Tenant o sucursal no encontrados')
@@ -110,7 +115,11 @@ export const authRepository = {
     try {
       const session = await authService.getSession()
       if (!session?.user) return null
-      const profile = await authService.getUserProfile(session.user.id, session.user.email)
+      const profile = await authService.getUserProfile(
+        session.user.id,
+        session.user.email,
+        session.access_token,
+      )
       if (!profile) return null
       return buildSession(profile)
     } catch {

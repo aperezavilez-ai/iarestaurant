@@ -37,12 +37,6 @@ export function AuthInit({ children }: { children: React.ReactNode }) {
             sucursalId: restored.sucursal.id,
             userId: restored.user.id,
           })
-        } else if (state.user && state.tenant && state.sucursal) {
-          setSession({
-            user: state.user,
-            tenant: state.tenant,
-            sucursal: state.sucursal,
-          })
         } else {
           logout()
         }

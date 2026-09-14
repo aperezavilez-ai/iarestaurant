@@ -24,4 +24,14 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    proxy: {
+      '/sb': {
+        target: 'https://supabase.gafcore.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (p) => p.replace(/^\/sb/, '/iarestaurant'),
+      },
+    },
+  },
 })

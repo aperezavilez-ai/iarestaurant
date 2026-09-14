@@ -6,7 +6,14 @@
     { "path": "/api/ops/analyze", "schedule": "0 13 * * *" }
   ],
   "rewrites": [
-    { "source": "/((?!api|assets|sw\\.js|workbox-.*|registerSW\\.js|manifest\\.webmanifest|favicon\\.svg).*)", "destination": "/index.html" }
+    {
+      "source": "/sb/:path*",
+      "destination": "https://supabase.gafcore.com/iarestaurant/:path*"
+    },
+    {
+      "source": "/((?!api|sb|assets|sw\\.js|workbox-.*|registerSW\\.js|manifest\\.webmanifest|favicon\\.svg).*)",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
     {

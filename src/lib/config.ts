@@ -8,7 +8,16 @@ export const PRODUCTION_APP_URL = 'https://www.iarestaurant.mx'
 /** Endpoint público del proyecto Supabase de producción. */
 export const SUPABASE_PROJECT_URL = 'https://supabase.gafcore.com/iarestaurant'
 
+/**
+ * En el navegador usamos same-origin `/sb` (proxy Vercel/Vite) porque el
+ * gateway GafCore responde `Access-Control-Allow-Origin: *, *` en REST y el
+ * browser bloquea el perfil/login aunque Auth sí pase.
+ */
 export function resolveSupabaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/sb`
+  }
+
   const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim() || ''
   if (url && !url.includes('tu-proyecto') && !url.includes('your-project')) {
     try {

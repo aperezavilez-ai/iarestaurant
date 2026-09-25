@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "projectName": "IA Restaurant",
+  "projectSlug": "ia-restaurant",
+  "isolationMode": "dedicated_supabase",
+  "supabase": {
+    "url": "https://supabase.gafcore.com/iarestaurant",
+    "instanceId": "iarestaurant",
+    "database": "postgres",
+    "schema": "public"
+  }
+}
